@@ -7,23 +7,55 @@ import { z as zod } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MapPin } from "lucide-react";
 import Button from "@/app/ui/button";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const schema = zod.object({
-  from: zod.string().min(1, "From is required"),
-  to: zod.string().min(1, "To is required"),
+  fromLocation: zod.string().optional(),
+  toLocation: zod.string().optional(),
+  fromDate: zod.any().optional(),
+  brand: zod.string().optional(),
 });
 
-const FiltersForm = () => {
-  type SchemaType = zod.infer<typeof schema>;
+type SchemaType = zod.infer<typeof schema>;
+
+export default function FiltersForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const methods = useForm<SchemaType>({
     resolver: zodResolver(schema),
     defaultValues: {
-      from: "",
-      to: "",
+      fromLocation: searchParams.get("fromLocation") || "",
+      toLocation: searchParams.get("toLocation") || "",
+      fromDate: searchParams.get("fromDate") || "",
+      brand: searchParams.get("brand") || "",
     },
   });
-  const { setValue, handleSubmit } = methods;
-  const onSubmit = (data: SchemaType) => {};
+  
+  const { handleSubmit } = methods;
+  
+  const onSubmit = (data: SchemaType) => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    // Clear old pagination to start fresh on new query
+    params.delete("page");
+    
+    if (data.fromLocation) params.set("fromLocation", data.fromLocation);
+    else params.delete("fromLocation");
+    
+    if (data.toLocation) params.set("toLocation", data.toLocation);
+    else params.delete("toLocation");
+
+    if (data.fromDate) {
+        const dateStr = data.fromDate instanceof Date ? data.fromDate.toISOString() : data.fromDate;
+        params.set("fromDate", dateStr.split("T")[0]);
+    } else params.delete("fromDate");
+    
+    if (data.brand) params.set("brand", data.brand);
+    else params.delete("brand");
+
+    router.push(`/?${params.toString()}`);
+  };
 
   return (
     <Card>
@@ -66,7 +98,7 @@ const FiltersForm = () => {
             name="fromDate"
           />
         </div>
-        <div className="grid    grid-cols-1 sm:grid-cols-3 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-3 items-end">
           <div className="col-span-2">
             <Field.Text
               label={{ text: "Nhà xe" }}
@@ -80,6 +112,4 @@ const FiltersForm = () => {
       </Form>
     </Card>
   );
-};
-
-export default FiltersForm;
+}

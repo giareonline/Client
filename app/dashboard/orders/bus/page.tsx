@@ -7,11 +7,14 @@ import { z as zod } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MapPin } from "lucide-react";
 import Button from "@/app/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useAlert } from "@/app/components/AlertContext";
 
 const schema = zod.object({
   fromLocation: zod.string().min(1, "Điểm xuất phát là bắt buộc"),
   toLocation: zod.string().min(1, "Điểm đến là bắt buộc"),
-  fromDate: zod.string().min(1, "Ngày khởi hành là bắt buộc"),
+  fromDate: zod.any().refine((val) => val !== null && val !== undefined && val !== "", "Ngày khởi hành là bắt buộc"),
   fromTime: zod.string().min(1, "Giờ khởi hành là bắt buộc"),
   toTime: zod.string().min(1, "Giờ đến là bắt buộc"),
   fromDestination: zod.string().min(1, "Bến đi là bắt buộc"),
@@ -45,8 +48,47 @@ const BusPage = () => {
       duration: "",
     },
   });
-  const { setValue, handleSubmit } = methods;
-  const onSubmit = (data: SchemaType) => {};
+  const { setValue, handleSubmit, reset } = methods;
+  const router = useRouter();
+  const { success, error: showError } = useAlert();
+
+  const mutation = useMutation({
+    mutationFn: async (data: SchemaType) => {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Vui lòng đăng nhập trước khi mua vé");
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/orders/bus`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...data,
+          fromDate: data.fromDate instanceof Date ? data.fromDate.toISOString() : data.fromDate
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error("Không thể tạo đơn hàng");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      success("Tạo đơn hàng vé xe khách thành công!");
+      reset(); // Reset form
+      setTimeout(() => {
+        router.push("/dashboard/orders"); // Điều hướng đến trang quản lý
+      }, 1500)
+    },
+    onError: (err: any) => {
+      showError(err.message || "Đã xảy ra lỗi");
+    }
+  });
+
+  const onSubmit = (data: SchemaType) => {
+    mutation.mutate(data);
+  };
 
   return (
     <Form
@@ -176,7 +218,13 @@ const BusPage = () => {
         </div>
       </Card>
       <Card>
-        <Button>Đồng ý</Button>
+        <Button 
+          type="submit" 
+          disabled={mutation.isPending}
+          className={mutation.isPending ? "opacity-70 cursor-not-allowed" : ""}
+        >
+          {mutation.isPending ? "Đang xử lý..." : "Đồng ý"}
+        </Button>
       </Card>
     </Form>
   );

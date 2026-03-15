@@ -152,13 +152,13 @@ export function RHFDatePicker({ name, label }: Props) {
                 <div className="absolute z-50 mt-2 w-full bg-white rounded-2xl shadow-lg p-4">
                   {/* Header */}
                   <div className="flex items-center justify-between mb-4">
-                    <button onClick={goPrevMonth}>
+                    <button onClick={goPrevMonth} type="button">
                       <ChevronLeft />
                     </button>
 
                     <h2 className="font-semibold">{monthName}</h2>
 
-                    <button onClick={goNextMonth}>
+                    <button onClick={goNextMonth} type="button">
                       <ChevronRight />
                     </button>
                   </div>

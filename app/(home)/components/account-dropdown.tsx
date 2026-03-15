@@ -4,9 +4,17 @@ import { useState, useRef, useEffect } from "react";
 import { ChevronDown, User } from "lucide-react";
 import Link from "next/link";
 
-export default function AccountDropdown() {
+export default function AccountDropdown({ user, setUser }: { user: any, setUser: (u: any) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    setOpen(false);
+    window.location.href = "/";
+  };
 
   // Click outside đóng menu
   useEffect(() => {
@@ -27,8 +35,12 @@ export default function AccountDropdown() {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2  text-white px-3 py-1 rounded-full transition"
       >
-        <div className="w-8 h-8 rounded-full bg-green-400 flex items-center justify-center">
-          <User size={16} />
+        <div className="w-8 h-8 rounded-full bg-green-400 flex items-center justify-center overflow-hidden border-2 border-green-300">
+          {user?.avatar ? (
+            <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            <User size={16} />
+          )}
         </div>
         <ChevronDown size={16} />
       </button>
@@ -62,7 +74,8 @@ export default function AccountDropdown() {
           <div className="border-t border-gray-100" />
 
           <button
-            className="w-full flex items-center gap-3 px-5 py-3 text-sm 
+            onClick={handleLogout}
+            className="w-full text-left flex items-center gap-3 px-5 py-3 text-sm 
          text-red-500 hover:bg-red-50 
          transition-all duration-200"
           >
