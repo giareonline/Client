@@ -1,26 +1,132 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: #1E3A5F;
+  --color-primary-light: #2D5A8E;
+  --color-accent: #FF6B35;
+  --color-accent-hover: #FF8C42;
+  --color-success: #00C853;
+  --color-surface: #F8FAFF;
+  --color-card: #FFFFFF;
+  --color-muted: #94A3B8;
+  --color-text: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-border: #E2E8F0;
+  --color-danger: #EF4444;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-text);
+  --font-sans: 'Inter', sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Ticket Notch (semicircle cuts) ─── */
+.ticket-notch {
+  position: relative;
+}
+
+.ticket-notch::before,
+.ticket-notch::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: var(--color-surface);
+  border-radius: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.ticket-notch::before {
+  left: -10px;
+}
+
+.ticket-notch::after {
+  right: -10px;
+}
+
+/* ─── Shimmer loading animation ─── */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 936px 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ─── Card entrance animation ─── */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-slide-up {
+  animation: fadeSlideUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+/* ─── Glow hover for buttons ─── */
+.glow-hover {
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.glow-hover:hover {
+  box-shadow: 0 4px 20px rgba(255, 107, 53, 0.35);
+  transform: translateY(-1px);
+}
+
+/* ─── Dashed separator for ticket ─── */
+.ticket-dash {
+  border-left: 2px dashed #E2E8F0;
+}
+
+/* ─── Hero gradient ─── */
+.hero-gradient {
+  background: linear-gradient(135deg, #1E3A5F 0%, #2D5A8E 50%, #3B6FA0 100%);
+}
+
+/* ─── Scrollbar styling ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }

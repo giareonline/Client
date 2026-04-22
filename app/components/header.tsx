@@ -5,45 +5,85 @@ import Image from "next/image";
 import AccountDropdown from "../(home)/components/account-dropdown";
 import Link from "next/link";
 import LoginModal from "./LoginModal";
+import { Bus, HelpCircle } from "lucide-react";
 
 export default function Header() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    // Read the user from localStorage on mount
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error("Failed to parse user from local storage", e);
+    const loadUser = () => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error("Failed to parse user from local storage", e);
+        }
       }
-    }
+    };
+
+    loadUser();
+
+    window.addEventListener("userUpdated", loadUser);
+    return () => window.removeEventListener("userUpdated", loadUser);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 bg-green-600 text-white shadow-md">
-      <div className="container mx-auto flex items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-[#1E3A5F]/95 backdrop-blur-md shadow-lg shadow-[#1E3A5F]/10"
+          : "bg-gradient-to-r from-[#1E3A5F] to-[#2D5A8E]"
+      }`}
+    >
+      <div className="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href={"/"} className="flex items-center">
-          <Image alt="logo" width={40} height={30} src="/logo.png" />
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-white/10 p-1 group-hover:bg-white/20 transition-colors">
+            <Image
+              alt="GiaReOnline logo"
+              width={40}
+              height={30}
+              src="/logo.png"
+              className="object-contain"
+            />
+          </div>
+          <div className="hidden sm:flex flex-col">
+            <span className="text-white font-bold text-lg leading-tight tracking-tight">
+              GiaReOnline
+            </span>
+            <span className="text-blue-200/70 text-[10px] leading-tight font-medium">
+              Đặt vé • Homestay
+            </span>
+          </div>
         </Link>
 
-        {/* Account Dropdown */}
-        <div className="flex items-center">
-          {" "}
-          <Link href="#" className="hover:underline text-sm">
-            Hướng dẫn đặt vé
+        {/* Right side */}
+        <div className="flex items-center gap-2">
+          <Link
+            href="#"
+            className="hidden sm:flex items-center gap-1.5 text-blue-100/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
+          >
+            <HelpCircle size={15} />
+            Hướng dẫn
           </Link>
+
           {user ? (
             <AccountDropdown user={user} setUser={setUser} />
           ) : (
             <button
               onClick={() => setIsLoginModalOpen(true)}
-              className="ml-2 px-3 py-1.5 bg-white text-green-600 rounded-md hover:bg-green-50 transition-colors text-sm font-medium"
+              className="ml-1 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl transition-all duration-300 text-sm font-semibold backdrop-blur-sm"
             >
-              Login
+              Đăng nhập
             </button>
           )}
         </div>

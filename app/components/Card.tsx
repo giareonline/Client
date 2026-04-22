@@ -8,7 +8,14 @@ type Props = {
 
 const Card = ({ children, className }: Props) => {
   return (
-    <div className={cn(`bg-white p-6 shadow rounded`, className)}>{children}</div>
+    <div
+      className={cn(
+        "bg-white p-6 shadow-sm rounded-2xl border border-[#E2E8F0]",
+        className
+      )}
+    >
+      {children}
+    </div>
   );
 };
 

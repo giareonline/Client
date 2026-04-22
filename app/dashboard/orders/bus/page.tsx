@@ -1,15 +1,17 @@
 "use client";
 import Card from "@/app/components/Card";
 import { Field, Form } from "@/app/components/hook-form";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z as zod } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MapPin } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
+import { PROVINCE_OPTIONS } from "@/app/utils/provinces";
 import Button from "@/app/ui/button";
-import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAlert } from "@/app/components/AlertContext";
+import OrderSuccessModal from "../components/OrderSuccessModal";
+import ImageUploader from "../components/ImageUploader";
 
 const schema = zod.object({
   fromLocation: zod.string().min(1, "Điểm xuất phát là bắt buộc"),
@@ -48,9 +50,27 @@ const BusPage = () => {
       duration: "",
     },
   });
-  const { setValue, handleSubmit, reset } = methods;
-  const router = useRouter();
-  const { success, error: showError } = useAlert();
+  const { handleSubmit, reset } = methods;
+  const { error: showError } = useAlert();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [remainingStars, setRemainingStars] = useState<number | undefined>();
+  const [images, setImages] = useState<string[]>([]);
+
+  // Fetch user profile to get star balance
+  const { data: profileData } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+  const userStars = profileData?.user?.stars ?? 0;
+  const hasEnoughStars = userStars >= 10;
 
   const mutation = useMutation({
     mutationFn: async (data: SchemaType) => {
@@ -65,21 +85,22 @@ const BusPage = () => {
         },
         body: JSON.stringify({
           ...data,
+          images,
           fromDate: data.fromDate instanceof Date ? data.fromDate.toISOString() : data.fromDate
         })
       });
 
       if (!res.ok) {
-        throw new Error("Không thể tạo đơn hàng");
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Không thể tạo đơn hàng");
       }
       return res.json();
     },
-    onSuccess: () => {
-      success("Tạo đơn hàng vé xe khách thành công!");
-      reset(); // Reset form
-      setTimeout(() => {
-        router.push("/dashboard/orders"); // Điều hướng đến trang quản lý
-      }, 1500)
+    onSuccess: (data) => {
+      setRemainingStars(data.remainingStars);
+      setShowSuccessModal(true);
+      reset();
+      setImages([]);
     },
     onError: (err: any) => {
       showError(err.message || "Đã xảy ra lỗi");
@@ -91,6 +112,7 @@ const BusPage = () => {
   };
 
   return (
+    <>
     <Form
       methods={methods}
       onSubmit={handleSubmit(onSubmit)}
@@ -104,15 +126,7 @@ const BusPage = () => {
             InputProps={{
               startAdornment: <MapPin size={16} className="text-green-500" />,
             }}
-            options={[
-              { value: "HCM", label: "HCM" },
-              { value: "HN", label: "Hà Nội" },
-              { value: "DN", label: "Đà Nẵng" },
-              {
-                value: "BT",
-                label: "Bình Thuận",
-              },
-            ]}
+            options={[...PROVINCE_OPTIONS]}
           />
           <Field.Select
             name="toLocation"
@@ -120,15 +134,7 @@ const BusPage = () => {
             InputProps={{
               startAdornment: <MapPin size={16} className="text-red-500" />,
             }}
-            options={[
-              { value: "HCM", label: "HCM" },
-              { value: "HN", label: "Hà Nội" },
-              { value: "DN", label: "Đà Nẵng" },
-              {
-                value: "BT",
-                label: "Bình Thuận",
-              },
-            ]}
+            options={[...PROVINCE_OPTIONS]}
           />
           <Field.DatePicker
             label={{ text: "Ngày xuất phát" }}
@@ -218,15 +224,42 @@ const BusPage = () => {
         </div>
       </Card>
       <Card>
-        <Button 
-          type="submit" 
-          disabled={mutation.isPending}
-          className={mutation.isPending ? "opacity-70 cursor-not-allowed" : ""}
-        >
-          {mutation.isPending ? "Đang xử lý..." : "Đồng ý"}
-        </Button>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Hình ảnh nhà xe</h3>
+        <ImageUploader value={images} onChange={setImages} maxFiles={4} />
+      </Card>
+      <Card>
+        <div className="flex flex-col gap-3">
+          <Button 
+            type="submit" 
+            disabled={mutation.isPending || !hasEnoughStars}
+            className={`flex items-center justify-center gap-2 w-full ${(mutation.isPending || !hasEnoughStars) ? "opacity-70 cursor-not-allowed" : ""}`}
+          >
+            {mutation.isPending ? "Đang xử lý..." : (
+              <>
+                Đồng ý
+                <span className="inline-flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-lg text-xs">
+                  <Star size={12} className="fill-current" />
+                  10 sao
+                </span>
+              </>
+            )}
+          </Button>
+          {!hasEnoughStars && (
+            <p className="text-center text-sm text-red-500 font-semibold">
+              ⚠️ Bạn chỉ có {userStars} ⭐ — cần tối thiểu 10 ⭐ để tạo đơn
+            </p>
+          )}
+        </div>
       </Card>
     </Form>
+
+    <OrderSuccessModal 
+      open={showSuccessModal}
+      onClose={() => setShowSuccessModal(false)}
+      remainingStars={remainingStars}
+      orderType="bus"
+    />
+    </>
   );
 };
 

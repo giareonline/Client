@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { User, Mail, ShieldCheck, Calendar, LogOut, ArrowLeft } from "lucide-react";
+import { User, Mail, ShieldCheck, Calendar, LogOut, ArrowLeft, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -154,6 +154,19 @@ export default function PortfolioPage() {
             {/* Detailed Info Grid */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
               
+              {/* Star Balance Card */}
+              <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex items-start space-x-4 hover:bg-yellow-50/50 transition-colors group">
+                <div className="bg-yellow-100 text-yellow-600 p-3 rounded-xl group-hover:bg-yellow-200 transition-colors">
+                  <Star className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Số dư Sao</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-0.5">
+                    {user?.stars || 0}
+                  </p>
+                </div>
+              </div>
+
               {/* Email Card */}
               <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex items-start space-x-4 hover:bg-green-50/50 transition-colors group">
                 <div className="bg-green-100 text-green-600 p-3 rounded-xl group-hover:bg-green-200 transition-colors">

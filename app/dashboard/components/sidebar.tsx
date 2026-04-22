@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { twMerge } from "tailwind-merge";
-import { User, ShoppingBag } from "lucide-react";
+import { User, ShoppingBag, CreditCard } from "lucide-react";
 
 const menuItems = [
   {
@@ -15,6 +15,11 @@ const menuItems = [
     label: "Đơn hàng",
     href: "/dashboard/orders",
     icon: ShoppingBag,
+  },
+  {
+    label: "Nạp sao",
+    href: "/dashboard/deposit",
+    icon: CreditCard,
   },
 ];
 

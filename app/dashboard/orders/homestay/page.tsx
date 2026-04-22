@@ -1,15 +1,18 @@
 "use client";
 
-import { ChevronLeft, CalendarClock, CreditCard, Building } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, CalendarClock, CreditCard, Building, Star } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z as zod } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Field, Form } from "@/app/components/hook-form";
+import { PROVINCE_OPTIONS } from "@/app/utils/provinces";
 import Button from "@/app/ui/button";
-import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAlert } from "@/app/components/AlertContext";
+import OrderSuccessModal from "../components/OrderSuccessModal";
+import ImageUploader from "../components/ImageUploader";
 import Card from "@/app/components/Card";
 
 const schema = zod.object({
@@ -38,14 +41,31 @@ export default function HomestayPage() {
     },
   });
   const { handleSubmit, reset } = methods;
-  const router = useRouter();
-  const { success, error: showError } = useAlert();
+  const { error: showError } = useAlert();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [remainingStars, setRemainingStars] = useState<number | undefined>();
+  const [images, setImages] = useState<string[]>([]);
+
+  // Fetch user profile to get star balance
+  const { data: profileData } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+  const userStars = profileData?.user?.stars ?? 0;
+  const hasEnoughStars = userStars >= 10;
 
   const mutation = useMutation({
     mutationFn: async (data: SchemaType) => {
       const token = localStorage.getItem("token");
 
-      // Format Date if they are Date objects
       const formattedData = {
         ...data,
         checkInDate: data.checkInDate instanceof Date ? data.checkInDate.toISOString() : data.checkInDate,
@@ -57,7 +77,7 @@ export default function HomestayPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(formattedData)
+        body: JSON.stringify({ ...formattedData, images })
       });
       if (!res.ok) {
         const errorData = await res.json();
@@ -65,12 +85,11 @@ export default function HomestayPage() {
       }
       return res.json();
     },
-    onSuccess: () => {
-      success("Tạo đơn đặt phòng Homestay thành công!");
-      reset(); // Reset form
-      setTimeout(() => {
-        router.push("/dashboard/orders"); // Điều hướng về Order list
-      }, 1500)
+    onSuccess: (data) => {
+      setRemainingStars(data.remainingStars);
+      setShowSuccessModal(true);
+      reset();
+      setImages([]);
     },
     onError: (err: any) => {
       showError(err.message || "Đã xảy ra lỗi khi tạo đặt phòng");
@@ -120,13 +139,7 @@ export default function HomestayPage() {
                 <Field.Select
                   name="propertyLocation"
                   label={{ text: "Khu vực" }}
-                  options={[
-                    { value: "Đà Lạt", label: "Đà Lạt" },
-                    { value: "Sapa", label: "Sapa" },
-                    { value: "Vũng Tàu", label: "Vũng Tàu" },
-                    { value: "Nha Trang", label: "Nha Trang" },
-                    { value: "Tam Đảo", label: "Tam Đảo" },
-                  ]}
+                  options={[...PROVINCE_OPTIONS]}
                 />
 
                 <Field.Text
@@ -194,18 +207,43 @@ export default function HomestayPage() {
             </div>
           </Card>
         </div>
+        {/* Image upload */}
+        <Card>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Hình ảnh homestay</h3>
+          <ImageUploader value={images} onChange={setImages} maxFiles={4} />
+        </Card>
 
         {/* Footer actions */}
-        <div className="flex items-center justify-end gap-3 mt-8">
-
+        <div className="flex flex-col gap-3 mt-8">
           <Button
             type="submit"
-            disabled={mutation.isPending}
+            disabled={mutation.isPending || !hasEnoughStars}
+            className={`flex items-center justify-center gap-2 w-full ${(mutation.isPending || !hasEnoughStars) ? "opacity-70 cursor-not-allowed" : ""}`}
           >
-            {mutation.isPending ? "Đang xử lý..." : "Xác nhận tạo phòng"}
+            {mutation.isPending ? "Đang xử lý..." : (
+              <>
+                Xác nhận tạo phòng
+                <span className="inline-flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-lg text-xs">
+                  <Star size={12} className="fill-current" />
+                  10 sao
+                </span>
+              </>
+            )}
           </Button>
+          {!hasEnoughStars && (
+            <p className="text-center text-sm text-red-500 font-semibold">
+              ⚠️ Bạn chỉ có {userStars} ⭐ — cần tối thiểu 10 ⭐ để tạo đơn
+            </p>
+          )}
         </div>
       </Form>
+
+      <OrderSuccessModal 
+        open={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        remainingStars={remainingStars}
+        orderType="homestay"
+      />
     </div>
   );
 }

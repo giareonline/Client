@@ -7,10 +7,10 @@ export default function HomeLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className="min-h-screen bg-[#F8FAFF]">
       <Header />
 
-      <div className=" max-w-7xl mx-auto px-4 mt-6">
+      <div className="max-w-7xl mx-auto px-4 mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-[250px_minmax(0,1fr)_250px] gap-6">
           {/* Left Ads Desktop */}
           <AdsColumn side="left" />

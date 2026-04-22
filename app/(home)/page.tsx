@@ -1,140 +1,204 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import FiltersForm from "./components/filters-form";
 import BusCard from "./components/bus-card";
+import HomestayCard from "./components/homestay-card";
 import BottomAdStack from "../components/BottomAdStack";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronLeft,
+  Bus,
+  Home,
+  SearchX,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 // Fetcher Function
-const fetchBuses = async (searchParams: URLSearchParams) => {
+const fetchOrders = async (searchParams: URLSearchParams) => {
+  const serviceType = searchParams.get("serviceType") || "bus";
   const query = searchParams.toString();
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/orders/bus/all?${query}`);
+  const endpoint = serviceType === "bus" ? "orders/bus/all" : "homestays";
+
+  const res = await fetch(
+    `${
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+    }/${endpoint}?${query}`
+  );
   if (!res.ok) {
-    throw new Error("Lỗi tải danh sách chuyến xe");
+    throw new Error(
+      `Lỗi tải danh sách ${serviceType === "bus" ? "chuyến xe" : "Homestay"}`
+    );
   }
   return res.json();
 };
 
-const Home = () => {
+const HomePage = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Current Page
   const currentPage = parseInt(searchParams.get("page") || "1");
+  const serviceType = searchParams.get("serviceType") || "bus";
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["allBuses", searchParams.toString()],
-    queryFn: () => fetchBuses(searchParams),
+    queryKey: ["allOrders", searchParams.toString()],
+    queryFn: () => fetchOrders(searchParams),
   });
 
   const orders = data?.data || [];
-  const meta = data?.meta; // { totalRecords, totalPage, currentPage, limit }
+  const meta = data?.meta;
 
   const handlePageChange = (newPage: number) => {
     if (!meta || newPage < 1 || newPage > meta.totalPage) return;
-    
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", newPage.toString());
     router.push(`/?${params.toString()}`, { scroll: false });
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-5">
       <FiltersForm />
 
-      {/* Loading State */}
+      {/* Results Section Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {serviceType === "bus" ? (
+            <Bus size={18} className="text-[#1E3A5F]" />
+          ) : (
+            <Home size={18} className="text-[#1E3A5F]" />
+          )}
+          <h2 className="text-lg font-bold text-[#1E3A5F]">
+            {serviceType === "bus" ? "Chuyến xe hiện có" : "Homestay nổi bật"}
+          </h2>
+        </div>
+        {meta && (
+          <span className="text-xs text-[#94A3B8] font-medium bg-[#F8FAFF] border border-[#E2E8F0] px-3 py-1.5 rounded-lg">
+            {meta.totalRecords || orders.length} kết quả
+          </span>
+        )}
+      </div>
+
+      {/* Loading State - Shimmer */}
       {isLoading && (
-        <div className="flex flex-col gap-4 mt-2">
-            {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse bg-white rounded-2xl h-48 w-full"></div>
-            ))}
+        <div className="flex flex-col gap-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="shimmer rounded-2xl h-44 w-full border border-[#E2E8F0]"
+            />
+          ))}
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="text-center py-10 bg-white rounded-2xl border border-red-100 text-red-500 mt-2">
-           {error.message || "Đã xảy ra lỗi, vui lòng thử lại"}
+        <div className="text-center py-12 bg-white rounded-2xl border border-[#EF4444]/20">
+          <div className="w-12 h-12 mx-auto bg-[#EF4444]/10 rounded-full flex items-center justify-center mb-3">
+            <SearchX size={24} className="text-[#EF4444]" />
+          </div>
+          <p className="text-[#EF4444] font-semibold">
+            {error.message || "Đã xảy ra lỗi, vui lòng thử lại"}
+          </p>
         </div>
       )}
 
       {/* Empty State */}
       {!isLoading && !error && orders.length === 0 && (
-         <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 mt-2">
-            <h3 className="text-lg font-semibold text-gray-700">Không tìm thấy chuyến xe nào</h3>
-            <p className="text-gray-500 mt-1">Vui lòng thử thay đổi bộ lọc tìm kiếm.</p>
-         </div>
+        <div className="text-center py-16 bg-white rounded-2xl border border-[#E2E8F0]">
+          <div className="w-16 h-16 mx-auto bg-[#F8FAFF] rounded-2xl flex items-center justify-center mb-4 border border-[#E2E8F0]">
+            <SearchX size={28} className="text-[#94A3B8]" />
+          </div>
+          <h3 className="text-base font-bold text-[#1E3A5F]">
+            Không tìm thấy{" "}
+            {serviceType === "bus" ? "chuyến xe" : "Homestay"} nào
+          </h3>
+          <p className="text-sm text-[#94A3B8] mt-1.5">
+            Vui lòng thử thay đổi bộ lọc tìm kiếm.
+          </p>
+        </div>
       )}
 
-      {/* Render Buses */}
+      {/* Render Orders with stagger animation */}
       {!isLoading && !error && orders.length > 0 && (
-          <div className="flex flex-col gap-3 mt-2">
-            {orders.map((order: any) => (
-                <BusCard key={order._id} order={order} />
-            ))}
-          </div>
+        <div className="flex flex-col gap-4">
+          {orders.map((order: any, index: number) => (
+            <motion.div
+              key={order._id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: index * 0.06 }}
+            >
+              {serviceType === "bus" ? (
+                <BusCard order={order} />
+              ) : (
+                <HomestayCard order={order} />
+              )}
+            </motion.div>
+          ))}
+        </div>
       )}
 
       {/* Pagination */}
-      {meta && meta.totalPage > 0 && (
-          <div className="flex items-center justify-center gap-2 mt-6 mb-4">
-              <button 
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition font-medium"
-              >
-                  <ChevronLeft size={20} />
-              </button>
+      {meta && meta.totalPage > 1 && (
+        <div className="flex items-center justify-center gap-1.5 mt-4 mb-6">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="flex items-center justify-center w-10 h-10 rounded-xl border border-[#E2E8F0] bg-white text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFF] hover:border-[#CBD5E1] transition-all font-medium cursor-pointer"
+          >
+            <ChevronLeft size={18} />
+          </button>
 
-              {/* Page Numbers */}
-              {Array.from({ length: meta.totalPage }, (_, i) => i + 1).map((page) => {
-                  // Hiển thị: Trang đầu, trang cuối, trang hiện tại, và +- 1 trang cạnh trang hiện tại
-                  if (
-                    page === 1 ||
-                    page === meta.totalPage ||
-                    (page >= currentPage - 1 && page <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`flex items-center justify-center w-10 h-10 rounded-lg border font-semibold text-sm transition-colors ${
-                          currentPage === page
-                            ? "bg-[#3B82F6] text-white border-[#3B82F6]" // Active state
-                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:text-gray-900" // Inactive state
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  }
+          {Array.from({ length: meta.totalPage }, (_, i) => i + 1).map(
+            (page) => {
+              if (
+                page === 1 ||
+                page === meta.totalPage ||
+                (page >= currentPage - 1 && page <= currentPage + 1)
+              ) {
+                return (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`flex items-center justify-center w-10 h-10 rounded-xl border font-semibold text-sm transition-all cursor-pointer ${
+                      currentPage === page
+                        ? "bg-[#1E3A5F] text-white border-[#1E3A5F] shadow-md shadow-[#1E3A5F]/20"
+                        : "bg-white text-[#64748B] border-[#E2E8F0] hover:bg-[#F8FAFF] hover:border-[#CBD5E1]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              }
 
-                  // Hiển thị dấy "...": Chỉ render 1 cái ở mỗi bên nếu khoảng cách đủ xa
-                  if (
-                    (page === currentPage - 2 && page > 1) ||
-                    (page === currentPage + 2 && page < meta.totalPage)
-                  ) {
-                    return (
-                      <span key={`dots-${page}`} className="flex items-center justify-center w-10 h-10 text-gray-500 font-medium">
-                        ...
-                      </span>
-                    );
-                  }
+              if (
+                (page === currentPage - 2 && page > 1) ||
+                (page === currentPage + 2 && page < meta.totalPage)
+              ) {
+                return (
+                  <span
+                    key={`dots-${page}`}
+                    className="flex items-center justify-center w-8 h-10 text-[#94A3B8] font-medium text-sm"
+                  >
+                    ···
+                  </span>
+                );
+              }
 
-                  return null;
-              })}
+              return null;
+            }
+          )}
 
-              <button 
-                 onClick={() => handlePageChange(currentPage + 1)}
-                 disabled={currentPage === meta.totalPage}
-                 className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition font-medium"
-              >
-                  <ChevronRight size={20} />
-              </button>
-          </div>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === meta.totalPage}
+            className="flex items-center justify-center w-10 h-10 rounded-xl border border-[#E2E8F0] bg-white text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFF] hover:border-[#CBD5E1] transition-all font-medium cursor-pointer"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
       )}
 
       {/* Bottom Ads Mobile */}
@@ -143,4 +207,17 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default function Page() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col gap-5">
+        <div className="shimmer rounded-2xl h-64 w-full" />
+        <div className="shimmer rounded-2xl h-44 w-full" />
+        <div className="shimmer rounded-2xl h-44 w-full" />
+      </div>
+    }>
+      <HomePage />
+    </Suspense>
+  );
+}
+
