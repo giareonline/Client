@@ -63,14 +63,19 @@ export default function ImageUploader({
         }
       );
 
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Upload failed with status:", res.status, errorText);
+        throw new Error("Upload failed: " + res.status + " " + errorText);
+      }
 
       const data = await res.json();
       if (data.success) {
         onChange([...value, ...data.data]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Upload error:", err);
+      alert("Lỗi upload: " + err.message);
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
