@@ -204,7 +204,15 @@ export default function OrderTable() {
                     {formatCurrency(order.priceTicket)}
                   </td>
                   <td className="px-8 py-6">
-                    <StatusBadge status={order.status || "pending"} />
+                    <div className="flex flex-col gap-2 items-start">
+                      <StatusBadge status={order.status || "pending"} />
+                      {order.status === "rejected" && order.rejectReason && (
+                        <div className="text-[10px] bg-red-50 text-red-600 px-2 py-1.5 rounded-md border border-red-100 max-w-[200px]">
+                          <span className="font-bold block mb-0.5">Lý do:</span>
+                          <span className="line-clamp-2" title={order.rejectReason}>{order.rejectReason}</span>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
