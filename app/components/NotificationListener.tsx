@@ -18,9 +18,12 @@ export default function NotificationListener() {
     // Tuy nhiên, để đơn giản và hoạt động trên browser, ta có thể dùng Fetch kết hợp ReadableStream
     // hoặc một thư viện SSE nhỏ. Ở đây ta dùng Fetch ReadableStream để tự xử lý SSE.
     
+    const abortController = new AbortController();
+
     const connectSSE = async () => {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/notifications/stream`, {
+          signal: abortController.signal,
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: "text/event-stream",
@@ -89,9 +92,9 @@ export default function NotificationListener() {
     connectSSE();
 
     return () => {
-      // Cleanup nếu component bị unmount
+      abortController.abort();
     };
-  }, [alert]);
+  }, []); // Remove alert from dependency array to prevent infinite loop
 
   return null; // Component này chạy ẩn, không render UI
 }

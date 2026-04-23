@@ -78,8 +78,10 @@ export function AlertProvider({ children }: { children: ReactNode }) {
     setAlerts((prev) => prev.filter((alert) => alert.id !== id));
   };
 
+  const contextValue = React.useMemo(() => ({ showAlert, success, error, warning }), [showAlert, success, error, warning]);
+
   return (
-    <AlertContext.Provider value={{ showAlert, success, error, warning }}>
+    <AlertContext.Provider value={contextValue}>
       {children}
       {/* Toast Container */}
       <div className="fixed top-24 right-4 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
