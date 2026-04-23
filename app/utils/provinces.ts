@@ -1,4 +1,8 @@
 export const PROVINCE_OPTIONS = [
+  { value: "Hà Nội", label: "Hà Nội" },
+  { value: "Sapa", label: "Sapa" },
+  { value: "Nha Trang", label: "Nha Trang" },
+  { value: "Đà Lạt", label: "Đà Lạt" },
   { value: "Tuyên Quang", label: "Tuyên Quang" },
   { value: "Lào Cai", label: "Lào Cai" },
   { value: "Thái Nguyên", label: "Thái Nguyên" },
@@ -14,7 +18,7 @@ export const PROVINCE_OPTIONS = [
   { value: "Khánh Hòa", label: "Khánh Hòa" },
   { value: "Lâm Đồng", label: "Lâm Đồng" },
   { value: "Đắk Lắk", label: "Đắk Lắk" },
-  { value: "TP. Hồ Chí Minh", label: "TP. Hồ Chí Minh" },
+  { value: "Hồ Chí Minh", label: "TP. Hồ Chí Minh" },
   { value: "Đồng Nai", label: "Đồng Nai" },
   { value: "Tây Ninh", label: "Tây Ninh" },
   { value: "Cần Thơ", label: "Cần Thơ" },
