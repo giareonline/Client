@@ -129,20 +129,21 @@ export default function OrderTable() {
               <th className="px-8 py-5">Ngày tạo</th>
               <th className="px-8 py-5">Tổng tiền</th>
               <th className="px-8 py-5">Trạng thái</th>
+              <th className="px-8 py-5">Lý do</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="animate-pulse">
-                  <td colSpan={6} className="px-8 py-7">
+                  <td colSpan={7} className="px-8 py-7">
                     <div className="h-5 bg-gray-100 rounded-full w-full"></div>
                   </td>
                 </tr>
               ))
             ) : error ? (
               <tr>
-                <td colSpan={6} className="px-8 py-16 text-center">
+                <td colSpan={7} className="px-8 py-16 text-center">
                   <div className="flex flex-col items-center gap-3 text-red-500">
                     <AlertCircle size={40} className="opacity-20" />
                     <p className="font-bold">Lỗi lấy danh sách đơn hàng</p>
@@ -204,21 +205,22 @@ export default function OrderTable() {
                     {formatCurrency(order.priceTicket)}
                   </td>
                   <td className="px-8 py-6">
-                    <div className="flex flex-col gap-2 items-start">
-                      <StatusBadge status={order.status || "pending"} />
-                      {order.status === "rejected" && order.rejectReason && (
-                        <div className="text-[10px] bg-red-50 text-red-600 px-2 py-1.5 rounded-md border border-red-100 max-w-[200px]">
-                          <span className="font-bold block mb-0.5">Lý do:</span>
-                          <span className="line-clamp-2" title={order.rejectReason}>{order.rejectReason}</span>
-                        </div>
-                      )}
-                    </div>
+                    <StatusBadge status={order.status || "pending"} />
+                  </td>
+                  <td className="px-8 py-6">
+                    {order.status === "rejected" && order.rejectReason ? (
+                      <div className="text-[10px] bg-red-50 text-red-600 px-3 py-2 rounded-lg border border-red-100 max-w-[200px]">
+                        <span className="line-clamp-2" title={order.rejectReason}>{order.rejectReason}</span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-300">-</span>
+                    )}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-8 py-24 text-center">
+                <td colSpan={7} className="px-8 py-24 text-center">
                   <div className="flex flex-col items-center gap-5 text-gray-300">
                     <div className="p-6 bg-gray-50 rounded-full">
                       {filterType === "bus" ? (
