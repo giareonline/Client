@@ -143,7 +143,7 @@ export default function FiltersForm() {
       >
         <Form methods={methods} onSubmit={handleSubmit(onSubmit)}>
           {serviceType === "bus" ? (
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+            <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
               <Field.Select
                 name="fromLocation"
                 label={{ text: "Xuất phát" }}
@@ -172,7 +172,7 @@ export default function FiltersForm() {
               />
             </div>
           ) : (
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+            <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
               <Field.Select
                 name="propertyLocation"
                 label={{ text: "Khu vực" }}
@@ -191,23 +191,25 @@ export default function FiltersForm() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] items-end gap-3 mt-4">
-            <Field.Text
-              label={{
-                text:
-                  serviceType === "bus" ? "Nhà xe" : "Tên Homestay",
-              }}
-              name="brand"
-              placeholder={
-                serviceType === "bus"
-                  ? "Tên nhà xe..."
-                  : "Tên Homestay/Villa..."
-              }
-            />
+          <div className="flex flex-wrap items-end gap-3 mt-4">
+            <div className="flex-1 min-w-[200px]">
+              <Field.Text
+                label={{
+                  text:
+                    serviceType === "bus" ? "Nhà xe" : "Tên Homestay",
+                }}
+                name="brand"
+                placeholder={
+                  serviceType === "bus"
+                    ? "Tên nhà xe..."
+                    : "Tên Homestay/Villa..."
+                }
+              />
+            </div>
 
             <button
               type="submit"
-              className="flex items-center justify-center gap-2 h-[46px] px-8 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] hover:from-[#FF8C42] hover:to-[#FFA060] text-white font-semibold rounded-xl transition-all duration-300 shadow-md glow-hover cursor-pointer whitespace-nowrap"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 h-[46px] px-8 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] hover:from-[#FF8C42] hover:to-[#FFA060] text-white font-semibold rounded-xl transition-all duration-300 shadow-md glow-hover cursor-pointer whitespace-nowrap flex-none"
             >
               <Search size={18} />
               Tìm kiếm
