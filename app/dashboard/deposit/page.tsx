@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Card from "../../components/Card";
 import Button from "@/app/ui/button";
 import { useAlert } from "@/app/components/AlertContext";
@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
+import { formatCurrency } from "@/app/utils/formatCurrency";
 
 const AMOUNTS = [
   { label: "5.000đ", value: 5000, stars: 5 },
@@ -37,8 +38,30 @@ export default function DepositPage() {
   const [selectedAmount, setSelectedAmount] = useState(AMOUNTS[0]);
   const [paymentData, setPaymentData] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [qrTimeLeft, setQrTimeLeft] = useState(120); // 2 minutes in seconds
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
   const alert = useAlert();
+
+  // QR countdown timer - clears QR when expired
+  useEffect(() => {
+    if (paymentData) {
+      setQrTimeLeft(120);
+      timerRef.current = setInterval(() => {
+        setQrTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current!);
+            setPaymentData(null);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [paymentData?.paymentId]);
 
   // Fetch transaction history with pagination
   const { data: historyData, isLoading: isHistoryLoading } = useQuery({
@@ -283,7 +306,9 @@ export default function DepositPage() {
                             <div className="p-8 text-center space-y-6">
                                 <div className="space-y-1">
                                     <h4 className="font-black text-gray-900 text-xl tracking-tight uppercase">Quét mã thanh toán</h4>
-                                    <p className="text-gray-500 text-sm">Hết hạn sau 2 phút</p>
+                                    <p className={`text-sm font-medium ${qrTimeLeft <= 30 ? 'text-red-500' : 'text-gray-500'}`}>
+                                      Hết hạn sau {Math.floor(qrTimeLeft / 60)}:{String(qrTimeLeft % 60).padStart(2, '0')}
+                                    </p>
                                 </div>
                                 
                                 <div className="relative w-full aspect-square bg-white rounded-3xl border-2 border-dashed border-gray-100 p-4 shadow-inner group">
@@ -408,7 +433,7 @@ export default function DepositPage() {
                                                     {tx.paymentId}
                                                 </td>
                                                 <td className="px-8 py-6 text-right font-black text-gray-900">
-                                                    {(tx.amount).toLocaleString()}đ
+                                                    {formatCurrency(tx.amount)}
                                                 </td>
                                                 <td className="px-8 py-6 text-center">
                                                     <div className="inline-flex items-center gap-1.5 font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full text-xs">

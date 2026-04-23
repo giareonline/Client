@@ -8,6 +8,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   remainingStars?: number;
+  deductedStars?: number;
   orderType: "bus" | "homestay";
 };
 
@@ -15,6 +16,7 @@ export default function OrderSuccessModal({
   open,
   onClose,
   remainingStars,
+  deductedStars,
   orderType,
 }: Props) {
   return (
@@ -66,7 +68,7 @@ export default function OrderSuccessModal({
                   </div>
                   <div>
                     <p className="text-sm font-bold text-amber-800">
-                      Đã trừ 10 ⭐
+                      Đã trừ {deductedStars ?? 10} ⭐
                     </p>
                     {remainingStars !== undefined && (
                       <p className="text-xs text-amber-600 mt-0.5">

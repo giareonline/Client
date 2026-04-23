@@ -29,10 +29,10 @@ export default function FiltersForm() {
     resolver: zodResolver(schema),
     defaultValues: {
       serviceType: (searchParams.get("serviceType") as any) || "bus",
-      fromLocation: searchParams.get("fromLocation") || "TP. Hồ Chí Minh",
+      fromLocation: searchParams.get("fromLocation") || "",
       toLocation: searchParams.get("toLocation") || "",
       fromDate: searchParams.get("fromDate") || "",
-      propertyLocation: searchParams.get("propertyLocation") || "Lâm Đồng",
+      propertyLocation: searchParams.get("propertyLocation") || "",
       checkInDate: searchParams.get("checkInDate") || "",
       brand: searchParams.get("brand") || "",
     },
@@ -44,10 +44,10 @@ export default function FiltersForm() {
   React.useEffect(() => {
     reset({
       serviceType: (searchParams.get("serviceType") as any) || "bus",
-      fromLocation: searchParams.get("fromLocation") || "TP. Hồ Chí Minh",
+      fromLocation: searchParams.get("fromLocation") || "",
       toLocation: searchParams.get("toLocation") || "",
       fromDate: searchParams.get("fromDate") || "",
-      propertyLocation: searchParams.get("propertyLocation") || "Lâm Đồng",
+      propertyLocation: searchParams.get("propertyLocation") || "",
       checkInDate: searchParams.get("checkInDate") || "",
       brand: searchParams.get("brand") || "",
     });
@@ -57,11 +57,6 @@ export default function FiltersForm() {
     setValue("serviceType", type);
     const params = new URLSearchParams();
     params.set("serviceType", type);
-    if (type === "bus") {
-      params.set("fromLocation", "TP. Hồ Chí Minh");
-    } else {
-      params.set("propertyLocation", "Lâm Đồng");
-    }
     router.push(`/?${params.toString()}`);
   };
 

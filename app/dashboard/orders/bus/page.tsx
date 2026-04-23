@@ -47,13 +47,14 @@ const BusPage = () => {
       amenities: [],
       priceTicket: "",
       listTop: "",
-      duration: "",
+      duration: "1",
     },
   });
   const { handleSubmit, reset } = methods;
   const { error: showError } = useAlert();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [remainingStars, setRemainingStars] = useState<number | undefined>();
+  const [deductedStars, setDeductedStars] = useState<number | undefined>();
   const [images, setImages] = useState<string[]>([]);
 
   // Fetch user profile to get star balance
@@ -70,7 +71,20 @@ const BusPage = () => {
     },
   });
   const userStars = profileData?.user?.stars ?? 0;
-  const hasEnoughStars = userStars >= 10;
+  
+  const { watch } = methods;
+  const listTop = watch("listTop");
+  const duration = watch("duration") || "1";
+  
+  let adCost = 0;
+  if (listTop === "hot") adCost = 5;
+  if (listTop === "goodCar") adCost = 10;
+  
+  const durationMultiplier = parseInt(duration, 10);
+  const durationCost = durationMultiplier * 10;
+  const requiredStars = durationCost + adCost;
+
+  const hasEnoughStars = userStars >= requiredStars;
 
   const mutation = useMutation({
     mutationFn: async (data: SchemaType) => {
@@ -98,6 +112,7 @@ const BusPage = () => {
     },
     onSuccess: (data) => {
       setRemainingStars(data.remainingStars);
+      setDeductedStars(data.deductedStars);
       setShowSuccessModal(true);
       reset();
       setImages([]);
@@ -108,6 +123,10 @@ const BusPage = () => {
   });
 
   const onSubmit = (data: SchemaType) => {
+    if (images.length === 0) {
+      showError("Hình ảnh nhà xe là bắt buộc");
+      return;
+    }
     mutation.mutate(data);
   };
 
@@ -122,7 +141,7 @@ const BusPage = () => {
         <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(190px,1fr))]">
           <Field.Select
             name="fromLocation"
-            label={{ text: "Xuất phát" }}
+            label={{ text: "Xuất phát" ,icon:"*"}}
             InputProps={{
               startAdornment: <MapPin size={16} className="text-green-500" />,
             }}
@@ -130,37 +149,37 @@ const BusPage = () => {
           />
           <Field.Select
             name="toLocation"
-            label={{ text: "Điểm dừng" }}
+            label={{ text: "Điểm dừng", icon: "*" }}
             InputProps={{
               startAdornment: <MapPin size={16} className="text-red-500" />,
             }}
             options={[...PROVINCE_OPTIONS]}
           />
           <Field.DatePicker
-            label={{ text: "Ngày xuất phát" }}
+            label={{ text: "Ngày xuất phát", icon: "*" }}
             name="fromDate"
           />
         </div>
         <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(190px,1fr))]">
           <Field.Text
-            label={{ text: "Giờ xuất phát" }}
+            label={{ text: "Giờ xuất phát", icon: "*" }}
             name="fromTime"
             placeholder="Ví dụ: 8:00 "
           />
           <Field.Text
-            label={{ text: "Giờ tới nơi" }}
+            label={{ text: "Giờ tới nơi", icon: "*" }}
             name="toTime"
             placeholder="Ví dụ: 20:00"
           />
         </div>
         <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(190px,1fr))]">
           <Field.Text
-            label={{ text: "Điểm đón" }}
+            label={{ text: "Điểm đón", icon: "*" }}
             name="fromDestination"
             placeholder="43/3 Hoàng Văn Thụ"
           />
           <Field.Text
-            label={{ text: "Điểm trả khách" }}
+            label={{ text: "Điểm trả khách", icon: "*" }}
             name="toDestination"
             placeholder="43/56 Nguyễn Văn Trỗi"
           />
@@ -169,17 +188,17 @@ const BusPage = () => {
       <Card>
         <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(190px,1fr))]">
           <Field.Text
-            label={{ text: "Nhà Xe" }}
+            label={{ text: "Nhà Xe", icon: "*" }}
             name="brand"
             placeholder="Hoàng Long"
           />
           <Field.Text
-            label={{ text: "Số điện thoại" }}
+            label={{ text: "Số điện thoại", icon: "*" }}
             name="phone"
             placeholder="0987 123 433, 0773 ..."
           />
           <Field.Text
-            label={{ text: "Loại xe" }}
+            label={{ text: "Loại xe", icon: "*" }}
             name="busCategory"
             placeholder="Ghế ngồi 16 chỗ"
           />
@@ -196,7 +215,7 @@ const BusPage = () => {
             name="amenities"
           />
           <Field.Text
-            label={{ text: "Giá vé" }}
+            label={{ text: "Giá vé", icon: "*" }}
             name="priceTicket"
             placeholder="Ví dụ: 1.000.000"
           />
@@ -208,23 +227,25 @@ const BusPage = () => {
             name="listTop"
             label={{ text: "Quảng cáo" }}
             options={[
-              { value: "hot", label: "Hot" },
-              { value: "goodCar", label: "Xe xịn" },
+              { value: "hot", label: "Hot (+5 ⭐)" },
+              { value: "goodCar", label: "Xe xịn (+10 ⭐)" },
             ]}
           />
           <Field.Select
             name="duration"
             label={{ text: "Thời gian hiển thị" }}
             options={[
-              { value: "1", label: "1 ngày" },
-              { value: "7", label: "7 ngày" },
-              { value: "30", label: "1 tháng" },
+              { value: "1", label: `1 ngày (${10 } ⭐)` },
+              { value: "7", label: `7 ngày (${70 } ⭐)` },
+              { value: "30", label: `1 tháng (${300 } ⭐)` },
             ]}
           />
         </div>
       </Card>
       <Card>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Hình ảnh nhà xe</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">
+          Hình ảnh nhà xe <span className="text-red-500">*</span>
+        </h3>
         <ImageUploader value={images} onChange={setImages} maxFiles={4} />
       </Card>
       <Card>
@@ -239,14 +260,14 @@ const BusPage = () => {
                 Đồng ý
                 <span className="inline-flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-lg text-xs">
                   <Star size={12} className="fill-current" />
-                  10 sao
+                  {requiredStars} sao
                 </span>
               </>
             )}
           </Button>
           {!hasEnoughStars && (
             <p className="text-center text-sm text-red-500 font-semibold">
-              ⚠️ Bạn chỉ có {userStars} ⭐ — cần tối thiểu 10 ⭐ để tạo đơn
+              ⚠️ Bạn chỉ có {userStars} ⭐ — cần tối thiểu {requiredStars} ⭐ để tạo đơn
             </p>
           )}
         </div>
@@ -257,6 +278,7 @@ const BusPage = () => {
       open={showSuccessModal}
       onClose={() => setShowSuccessModal(false)}
       remainingStars={remainingStars}
+      deductedStars={deductedStars}
       orderType="bus"
     />
     </>

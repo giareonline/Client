@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { cn } from "@/app/utils/utils";
 
 // API fetching function
 const fetchUserProfile = async () => {
@@ -193,17 +194,41 @@ export default function PortfolioPage() {
                 </div>
               </div>
 
-              {/* Join Date Card */}
-              <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex items-start space-x-4 hover:bg-purple-50/50 transition-colors group md:col-span-2">
-                <div className="bg-purple-100 text-purple-600 p-3 rounded-xl group-hover:bg-purple-200 transition-colors">
+              {/* Account Status Card */}
+              <div className={cn(
+                "rounded-2xl p-5 border flex items-start space-x-4 transition-colors group md:col-span-2",
+                user?.isBlocked
+                  ? "bg-red-50 border-red-100 hover:bg-red-100/50"
+                  : "bg-gray-50 border-gray-100 hover:bg-purple-50/50"
+              )}>
+                <div className={cn(
+                  "p-3 rounded-xl transition-colors",
+                  user?.isBlocked
+                    ? "bg-red-100 text-red-600 group-hover:bg-red-200"
+                    : "bg-purple-100 text-purple-600 group-hover:bg-purple-200"
+                )}>
                   <Calendar className="w-6 h-6" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Trạng thái tài khoản</p>
-                  <p className="text-gray-900 font-semibold mt-0.5 flex items-center">
-                    <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
-                    Đang hoạt động bình thường
-                  </p>
+                  {user?.isBlocked ? (
+                    <div className="mt-0.5">
+                      <p className="text-red-600 font-semibold flex items-center">
+                        <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                        Tài khoản đã bị khoá
+                      </p>
+                      {user?.blockReason && (
+                        <p className="text-xs text-red-500 mt-1 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                          <span className="font-semibold">Lý do:</span> {user.blockReason}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-gray-900 font-semibold mt-0.5 flex items-center">
+                      <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                      Đang hoạt động bình thường
+                    </p>
+                  )}
                 </div>
               </div>
 

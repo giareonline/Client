@@ -24,7 +24,29 @@ export default function Header() {
       }
     };
 
+    // Fetch fresh user data from API to keep stars/status in sync
+    const fetchFreshUser = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.user) {
+            setUser(data.user);
+            localStorage.setItem("user", JSON.stringify(data.user));
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch fresh user data", e);
+      }
+    };
+
     loadUser();
+    fetchFreshUser();
 
     window.addEventListener("userUpdated", loadUser);
     return () => window.removeEventListener("userUpdated", loadUser);

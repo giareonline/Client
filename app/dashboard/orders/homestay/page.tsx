@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, CalendarClock, CreditCard, Building, Star } from "lucide-react";
+import {
+  ChevronLeft,
+  CalendarClock,
+  CreditCard,
+  Building,
+  Star,
+} from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z as zod } from "zod";
@@ -17,13 +23,17 @@ import Card from "@/app/components/Card";
 
 const schema = zod.object({
   propertyLocation: zod.string().min(1, "Khu vực là bắt buộc"),
-  checkInDate: zod.any().refine((val) => val !== null && val !== undefined && val !== "", {
-    message: "Ngày nhận phòng là bắt buộc",
-  }),
+  checkInDate: zod
+    .any()
+    .refine((val) => val !== null && val !== undefined && val !== "", {
+      message: "Ngày nhận phòng là bắt buộc",
+    }),
   brand: zod.string().min(1, "Tên Homestay là bắt buộc"),
   phone: zod.string().min(10, "Số điện thoại không hợp lệ"),
   priceTicket: zod.string().min(1, "Giá tiền là bắt buộc"),
   amenities: zod.array(zod.string()).optional(),
+  listTop: zod.string().optional(),
+  duration: zod.string().optional(),
 });
 
 type SchemaType = zod.infer<typeof schema>;
@@ -38,12 +48,15 @@ export default function HomestayPage() {
       phone: "",
       priceTicket: "",
       amenities: [],
+      listTop: "",
+      duration: "1",
     },
   });
   const { handleSubmit, reset } = methods;
   const { error: showError } = useAlert();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [remainingStars, setRemainingStars] = useState<number | undefined>();
+  const [deductedStars, setDeductedStars] = useState<number | undefined>();
   const [images, setImages] = useState<string[]>([]);
 
   // Fetch user profile to get star balance
@@ -52,15 +65,31 @@ export default function HomestayPage() {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
   });
   const userStars = profileData?.user?.stars ?? 0;
-  const hasEnoughStars = userStars >= 10;
+
+  const { watch } = methods;
+  const listTop = watch("listTop");
+  const duration = watch("duration") || "1";
+
+  let adCost = 0;
+  if (listTop === "hot") adCost = 5;
+  if (listTop === "niceRoom") adCost = 10;
+
+  const durationMultiplier = parseInt(duration, 10);
+  const durationCost = durationMultiplier * 10;
+  const requiredStars = durationCost + adCost;
+
+  const hasEnoughStars = userStars >= requiredStars;
 
   const mutation = useMutation({
     mutationFn: async (data: SchemaType) => {
@@ -68,17 +97,23 @@ export default function HomestayPage() {
 
       const formattedData = {
         ...data,
-        checkInDate: data.checkInDate instanceof Date ? data.checkInDate.toISOString() : data.checkInDate,
+        checkInDate:
+          data.checkInDate instanceof Date
+            ? data.checkInDate.toISOString()
+            : data.checkInDate,
       };
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/orders/homestay`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/orders/homestay`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ...formattedData, images }),
         },
-        body: JSON.stringify({ ...formattedData, images })
-      });
+      );
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Tạo đơn hàng thất bại");
@@ -87,16 +122,21 @@ export default function HomestayPage() {
     },
     onSuccess: (data) => {
       setRemainingStars(data.remainingStars);
+      setDeductedStars(data.deductedStars);
       setShowSuccessModal(true);
       reset();
       setImages([]);
     },
     onError: (err: any) => {
       showError(err.message || "Đã xảy ra lỗi khi tạo đặt phòng");
-    }
+    },
   });
 
   const onSubmit = (data: SchemaType) => {
+    if (images.length === 0) {
+      showError("Hình ảnh homestay là bắt buộc");
+      return;
+    }
     mutation.mutate(data);
   };
 
@@ -124,7 +164,7 @@ export default function HomestayPage() {
       <Form methods={methods} onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-6">
           {/* Section 1: Thông tin cơ bản */}
-          <Card >
+          <Card>
             <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50 flex items-center gap-2">
               <Building size={18} className="text-blue-500" />
               <h3 className="font-semibold text-gray-800">Thông tin cơ sở</h3>
@@ -133,25 +173,25 @@ export default function HomestayPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Field.Text
                   name="brand"
-                  label={{ text: "Tên Homestay/Villa" }}
+                  label={{ text: "Tên Homestay/Villa", icon: "*" }}
                 />
 
                 <Field.Select
                   name="propertyLocation"
-                  label={{ text: "Khu vực" }}
+                  label={{ text: "Khu vực", icon: "*" }}
                   options={[...PROVINCE_OPTIONS]}
                 />
 
                 <Field.Text
                   name="phone"
-                  label={{ text: "Số điện thoại liên hệ" }}
+                  label={{ text: "Số điện thoại liên hệ", icon: "*" }}
                 />
               </div>
             </div>
           </Card>
 
           {/* Section 2: Lịch trình */}
-          <Card >
+          <Card>
             <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50 flex items-center gap-2">
               <CalendarClock size={18} className="text-purple-500" />
               <h3 className="font-semibold text-gray-800">Thời gian lưu trú</h3>
@@ -165,28 +205,29 @@ export default function HomestayPage() {
                     <div className="flex-1">
                       <Field.DatePicker
                         name="checkInDate"
-                        label={{ text: "Ngày nhận phòng" }}
+                        label={{ text: "Ngày nhận phòng", icon: "*" }}
                       />
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           </Card>
 
           {/* Section 3: Giá & Tiện ích */}
-          <Card >
+          <Card>
             <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50 flex items-center gap-2">
               <CreditCard size={18} className="text-green-500" />
-              <h3 className="font-semibold text-gray-800">Thanh toán & Chi tiết</h3>
+              <h3 className="font-semibold text-gray-800">
+                Thanh toán & Chi tiết
+              </h3>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Field.Text
                     name="priceTicket"
-                    label={{ text: "Giá phòng/Đêm (VNĐ)" }}
+                    label={{ text: "Giá phòng/Đêm (VNĐ)", icon: "*" }}
                   />
                 </div>
                 <div>
@@ -197,51 +238,80 @@ export default function HomestayPage() {
                       { label: "Hồ bơi riêng", value: "Hồ bơi riêng" },
                       { label: "BBQ nướng", value: "BBQ nướng" },
                       { label: "Miễn phí ăn sáng", value: "Miễn phí ăn sáng" },
-                      { label: "Thiết kế sân vườn", value: "Thiết kế sân vườn" },
+                      {
+                        label: "Thiết kế sân vườn",
+                        value: "Thiết kế sân vườn",
+                      },
                     ]}
                     placeholder="Chọn tiện ích..."
                   />
                 </div>
               </div>
-
             </div>
           </Card>
+          <Card>
+            <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(190px,1fr))]">
+              <Field.Select
+                name="listTop"
+                label={{ text: "Quảng cáo" }}
+                options={[
+                  { value: "hot", label: "Hot (+5 ⭐)" },
+                  { value: "niceRoom", label: "Phòng đẹp (+10 ⭐)" },
+                ]}
+              />
+              <Field.Select
+                name="duration"
+                label={{ text: "Thời gian hiển thị" }}
+                options={[
+                  { value: "1", label: `1 ngày (${10} ⭐)` },
+                  { value: "7", label: `7 ngày (${70} ⭐)` },
+                  { value: "30", label: `1 tháng (${300} ⭐)` },
+                ]}
+              />
+            </div>
+          </Card>
+          {/* Image upload */}
+          <Card>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">
+              Hình ảnh homestay <span className="text-red-500">*</span>
+            </h3>
+            <ImageUploader value={images} onChange={setImages} maxFiles={4} />
+          </Card>
         </div>
-        {/* Image upload */}
-        <Card>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Hình ảnh homestay</h3>
-          <ImageUploader value={images} onChange={setImages} maxFiles={4} />
-        </Card>
 
         {/* Footer actions */}
         <div className="flex flex-col gap-3 mt-8">
           <Button
             type="submit"
             disabled={mutation.isPending || !hasEnoughStars}
-            className={`flex items-center justify-center gap-2 w-full ${(mutation.isPending || !hasEnoughStars) ? "opacity-70 cursor-not-allowed" : ""}`}
+            className={`flex items-center justify-center gap-2 w-full ${mutation.isPending || !hasEnoughStars ? "opacity-70 cursor-not-allowed" : ""}`}
           >
-            {mutation.isPending ? "Đang xử lý..." : (
+            {mutation.isPending ? (
+              "Đang xử lý..."
+            ) : (
               <>
                 Xác nhận tạo phòng
                 <span className="inline-flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-lg text-xs">
                   <Star size={12} className="fill-current" />
-                  10 sao
+                  {requiredStars} sao
                 </span>
               </>
             )}
           </Button>
           {!hasEnoughStars && (
             <p className="text-center text-sm text-red-500 font-semibold">
-              ⚠️ Bạn chỉ có {userStars} ⭐ — cần tối thiểu 10 ⭐ để tạo đơn
+              ⚠️ Bạn chỉ có {userStars} ⭐ — cần tối thiểu {requiredStars} ⭐ để
+              tạo đơn
             </p>
           )}
         </div>
       </Form>
 
-      <OrderSuccessModal 
+      <OrderSuccessModal
         open={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
         remainingStars={remainingStars}
+        deductedStars={deductedStars}
         orderType="homestay"
       />
     </div>
