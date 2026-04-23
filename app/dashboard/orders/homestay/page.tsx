@@ -15,11 +15,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Field, Form } from "@/app/components/hook-form";
 import { PROVINCE_OPTIONS } from "@/app/utils/provinces";
 import Button from "@/app/ui/button";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAlert } from "@/app/components/AlertContext";
 import OrderSuccessModal from "../components/OrderSuccessModal";
 import ImageUploader from "../components/ImageUploader";
 import Card from "@/app/components/Card";
+import { useUserProfile } from "@/app/hooks/api/useAuth";
+import { useCreateHomestayOrder } from "@/app/hooks/api/useOrders";
 
 const schema = zod.object({
   propertyLocation: zod.string().min(1, "Khu vực là bắt buộc"),
@@ -59,23 +60,11 @@ export default function HomestayPage() {
   const [deductedStars, setDeductedStars] = useState<number | undefined>();
   const [images, setImages] = useState<string[]>([]);
 
-  // Fetch user profile to get star balance
-  const { data: profileData } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token");
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
-  });
+  // ─── React Query Hooks ───
+  const { data: profileData } = useUserProfile();
   const userStars = profileData?.user?.stars ?? 0;
+
+  const mutation = useCreateHomestayOrder();
 
   const { watch } = methods;
   const listTop = watch("listTop");
@@ -91,53 +80,33 @@ export default function HomestayPage() {
 
   const hasEnoughStars = userStars >= requiredStars;
 
-  const mutation = useMutation({
-    mutationFn: async (data: SchemaType) => {
-      const token = localStorage.getItem("token");
-
-      const formattedData = {
-        ...data,
-        checkInDate:
-          data.checkInDate instanceof Date
-            ? data.checkInDate.toISOString()
-            : data.checkInDate,
-      };
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/orders/homestay`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ ...formattedData, images }),
-        },
-      );
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Tạo đơn hàng thất bại");
-      }
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setRemainingStars(data.remainingStars);
-      setDeductedStars(data.deductedStars);
-      setShowSuccessModal(true);
-      reset();
-      setImages([]);
-    },
-    onError: (err: any) => {
-      showError(err.message || "Đã xảy ra lỗi khi tạo đặt phòng");
-    },
-  });
-
   const onSubmit = (data: SchemaType) => {
     if (images.length === 0) {
       showError("Hình ảnh homestay là bắt buộc");
       return;
     }
-    mutation.mutate(data);
+
+    const formattedData = {
+      ...data,
+      images,
+      checkInDate:
+        data.checkInDate instanceof Date
+          ? data.checkInDate.toISOString()
+          : data.checkInDate,
+    };
+
+    mutation.mutate(formattedData, {
+      onSuccess: (responseData) => {
+        setRemainingStars(responseData.remainingStars);
+        setDeductedStars(responseData.deductedStars);
+        setShowSuccessModal(true);
+        reset();
+        setImages([]);
+      },
+      onError: (err) => {
+        showError(err.message || "Đã xảy ra lỗi khi tạo đặt phòng");
+      },
+    });
   };
 
   return (

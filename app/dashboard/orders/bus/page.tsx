@@ -8,10 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { MapPin, Star } from "lucide-react";
 import { PROVINCE_OPTIONS } from "@/app/utils/provinces";
 import Button from "@/app/ui/button";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAlert } from "@/app/components/AlertContext";
 import OrderSuccessModal from "../components/OrderSuccessModal";
 import ImageUploader from "../components/ImageUploader";
+import { useUserProfile } from "@/app/hooks/api/useAuth";
+import { useCreateBusOrder } from "@/app/hooks/api/useOrders";
 
 const schema = zod.object({
   fromLocation: zod.string().min(1, "Điểm xuất phát là bắt buộc"),
@@ -29,8 +30,10 @@ const schema = zod.object({
   listTop: zod.string().optional(),
   duration: zod.string().optional(),
 });
+
+type SchemaType = zod.infer<typeof schema>;
+
 const BusPage = () => {
-  type SchemaType = zod.infer<typeof schema>;
   const methods = useForm<SchemaType>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -57,21 +60,12 @@ const BusPage = () => {
   const [deductedStars, setDeductedStars] = useState<number | undefined>();
   const [images, setImages] = useState<string[]>([]);
 
-  // Fetch user profile to get star balance
-  const { data: profileData } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
-  });
+  // ─── React Query Hooks ───
+  const { data: profileData } = useUserProfile();
   const userStars = profileData?.user?.stars ?? 0;
   
+  const mutation = useCreateBusOrder();
+
   const { watch } = methods;
   const listTop = watch("listTop");
   const duration = watch("duration") || "1";
@@ -86,48 +80,30 @@ const BusPage = () => {
 
   const hasEnoughStars = userStars >= requiredStars;
 
-  const mutation = useMutation({
-    mutationFn: async (data: SchemaType) => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Vui lòng đăng nhập trước khi mua vé");
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/orders/bus`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...data,
-          images,
-          fromDate: data.fromDate instanceof Date ? data.fromDate.toISOString() : data.fromDate
-        })
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Không thể tạo đơn hàng");
-      }
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setRemainingStars(data.remainingStars);
-      setDeductedStars(data.deductedStars);
-      setShowSuccessModal(true);
-      reset();
-      setImages([]);
-    },
-    onError: (err: any) => {
-      showError(err.message || "Đã xảy ra lỗi");
-    }
-  });
-
   const onSubmit = (data: SchemaType) => {
     if (images.length === 0) {
       showError("Hình ảnh nhà xe là bắt buộc");
       return;
     }
-    mutation.mutate(data);
+    mutation.mutate(
+      {
+        ...data,
+        images,
+        fromDate: data.fromDate instanceof Date ? data.fromDate.toISOString() : data.fromDate,
+      },
+      {
+        onSuccess: (responseData) => {
+          setRemainingStars(responseData.remainingStars);
+          setDeductedStars(responseData.deductedStars);
+          setShowSuccessModal(true);
+          reset();
+          setImages([]);
+        },
+        onError: (err) => {
+          showError(err.message || "Đã xảy ra lỗi");
+        },
+      }
+    );
   };
 
   return (

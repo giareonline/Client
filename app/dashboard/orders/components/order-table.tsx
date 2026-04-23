@@ -9,46 +9,15 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import { useState, useRef, useEffect } from "react";
 import { formatCurrency } from "@/app/utils/formatCurrency";
-
-const fetchOrders = async (
-  type: "bus" | "homestay",
-  page: number,
-): Promise<{ data: any[]; meta: any }> => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Vui lòng đăng nhập");
-
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/orders/${type}?page=${page}&limit=10`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
-
-  if (!res.ok) {
-    throw new Error(`Không thể lấy danh sách đơn hàng ${type}`);
-  }
-
-  const result = await res.json();
-  return { data: result.data, meta: result.meta };
-};
+import { useMyOrders } from "@/app/hooks/api/useOrders";
 
 export default function OrderTable() {
   const [filterType, setFilterType] = useState<"bus" | "homestay">("bus");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const {
-    data: response,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["orders", filterType, currentPage],
-    queryFn: () => fetchOrders(filterType, currentPage),
-  });
+  const { data: response, isLoading, error } = useMyOrders(filterType, currentPage);
 
   const orders = response?.data || [];
   const meta = response?.meta;

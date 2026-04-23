@@ -18,9 +18,11 @@ import {
     ChevronLeft,
     ChevronRight
 } from "lucide-react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { formatCurrency } from "@/app/utils/formatCurrency";
+import { usePaymentHistory, usePaymentStatus, useCreateDeposit, useSimulatePayment } from "@/app/hooks/api/usePayments";
+import { refreshUserData } from "@/app/hooks/api/useAuth";
 
 const AMOUNTS = [
   { label: "5.000đ", value: 5000, stars: 5 },
@@ -38,12 +40,12 @@ export default function DepositPage() {
   const [selectedAmount, setSelectedAmount] = useState(AMOUNTS[0]);
   const [paymentData, setPaymentData] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [qrTimeLeft, setQrTimeLeft] = useState(120); // 2 minutes in seconds
+  const [qrTimeLeft, setQrTimeLeft] = useState(120);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
   const alert = useAlert();
 
-  // QR countdown timer - clears QR when expired
+  // QR countdown timer
   useEffect(() => {
     if (paymentData) {
       setQrTimeLeft(120);
@@ -63,58 +65,17 @@ export default function DepositPage() {
     };
   }, [paymentData?.paymentId]);
 
-  // Fetch transaction history with pagination
-  const { data: historyData, isLoading: isHistoryLoading } = useQuery({
-    queryKey: ["paymentHistory", currentPage],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/payments/history?page=${currentPage}&limit=10`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) throw new Error("Lỗi tải lịch sử");
-      return res.json();
-    },
-    enabled: true, // Always enabled to check for updates
-  });
-
-  // Polling for active payment status
-  const { data: statusData } = useQuery({
-    queryKey: ["paymentStatus", paymentData?.paymentId],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/payments/status/${paymentData.paymentId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) return null;
-      return res.json();
-    },
-    enabled: !!paymentData,
-    refetchInterval: (data: any) => {
-        if (data?.status === 'completed') return false;
-        return 3000; // Poll every 3 seconds
-    },
-  });
+  // ─── React Query Hooks ───
+  const { data: historyData, isLoading: isHistoryLoading } = usePaymentHistory(currentPage);
+  const { data: statusData } = usePaymentStatus(paymentData?.paymentId ?? null);
+  const depositMutation = useCreateDeposit();
+  const simulateMutation = useSimulatePayment();
 
   // Handle success when polling detects completed status
   React.useEffect(() => {
     if (statusData?.status === 'completed' && paymentData) {
         const handleSuccess = async () => {
-            const token = localStorage.getItem("token");
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            
-            if (res.ok) {
-                const data = await res.json();
-                localStorage.setItem("user", JSON.stringify(data.user));
-                // Dispatch event to update other components (like header)
-                window.dispatchEvent(new Event("userUpdated"));
-            }
-
+            await refreshUserData();
             queryClient.invalidateQueries({ queryKey: ["paymentHistory"] });
             alert.success(`🎉 Nạp ${paymentData?.transaction?.stars || ''} sao thành công! Số dư đã được cập nhật.`);
             setPaymentData(null);
@@ -124,56 +85,27 @@ export default function DepositPage() {
     }
   }, [statusData, paymentData, queryClient, alert]);
 
-  const mutation = useMutation({
-    mutationFn: async (amount: number) => {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/payments/deposit`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ amount }),
-      });
-      if (!res.ok) throw new Error("Không thể tạo yêu cầu nạp tiền");
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setPaymentData(data.data);
-      queryClient.invalidateQueries({ queryKey: ["paymentHistory"] });
-    },
-  });
-
   const handleDeposit = () => {
-    mutation.mutate(selectedAmount.value);
+    depositMutation.mutate(selectedAmount.value, {
+      onSuccess: (data) => {
+        setPaymentData(data.data);
+      },
+    });
   };
 
   const simulateSuccess = async () => {
     if (!paymentData) return;
-    try {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/payments/webhook`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ paymentId: paymentData.paymentId, status: "success" }),
-        });
-
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-        
-        if (res.ok) {
-            const data = await res.json();
-            localStorage.setItem("user", JSON.stringify(data.user));
-        }
-
-        queryClient.invalidateQueries({ queryKey: ["paymentHistory"] });
+    simulateMutation.mutate(paymentData.paymentId, {
+      onSuccess: async () => {
+        await refreshUserData();
         alert.success(`🎉 Nạp sao thành công! Số dư đã được cập nhật.`);
         setPaymentData(null);
-        setActiveTab("history"); 
-    } catch (e) {
-        console.error(e);
+        setActiveTab("history");
+      },
+      onError: () => {
         alert.error("Lỗi khi giả lập nạp tiền");
-    }
+      },
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -282,10 +214,10 @@ export default function DepositPage() {
                             {!paymentData && (
                                 <Button
                                     onClick={handleDeposit}
-                                    disabled={mutation.isPending}
+                                    disabled={depositMutation.isPending}
                                     className="w-full h-16 mt-10 text-xl font-black rounded-2xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-transform"
                                 >
-                                    {mutation.isPending ? (
+                                    {depositMutation.isPending ? (
                                         <div className="flex items-center gap-3">
                                             <Loader2 className="h-6 w-6 animate-spin" />
                                             Đang khởi tạo...
@@ -341,9 +273,10 @@ export default function DepositPage() {
                                 
                                 <button 
                                     onClick={simulateSuccess}
+                                    disabled={simulateMutation.isPending}
                                     className="w-full py-2 text-[10px] text-gray-300 hover:text-blue-400 font-bold uppercase tracking-widest transition-colors"
                                 >
-                                    [ DEV: Bấm để giả lập thành công ]
+                                    {simulateMutation.isPending ? "Đang xử lý..." : "[ DEV: Bấm để giả lập thành công ]"}
                                 </button>
                             </div>
                         </Card>

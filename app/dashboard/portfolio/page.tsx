@@ -1,35 +1,12 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { User, Mail, ShieldCheck, Calendar, LogOut, ArrowLeft, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/app/utils/utils";
-
-// API fetching function
-const fetchUserProfile = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No token found");
-
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) {
-    if (res.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      throw new Error("Unauthorized");
-    }
-    throw new Error("Failed to fetch user profile");
-  }
-
-  return res.json();
-};
+import { useUserProfile } from "@/app/hooks/api/useAuth";
 
 export default function PortfolioPage() {
   const router = useRouter();
@@ -39,11 +16,7 @@ export default function PortfolioPage() {
     setMounted(true);
   }, []);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: fetchUserProfile,
-    retry: false, // Don't retry on 401 Unauthorized
-  });
+  const { data, isLoading, error } = useUserProfile({ retry: false });
 
   const handleLogout = () => {
     localStorage.removeItem("token");

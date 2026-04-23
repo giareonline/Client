@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { ImagePlus, X, Loader2, Star } from "lucide-react";
 import Image from "next/image";
+import { useUploadImages } from "@/app/hooks/api/useUpload";
 
 type Props = {
   value: string[];
@@ -15,8 +16,8 @@ export default function ImageUploader({
   onChange,
   maxFiles = 4,
 }: Props) {
-  const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const uploadMutation = useUploadImages();
 
   const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
   const MAX_SIZE = 1 * 1024 * 1024; // 1MB
@@ -46,40 +47,20 @@ export default function ImageUploader({
       return;
     }
 
-    const filesToUpload = selected;
-
-    setUploading(true);
-    try {
-      const token = localStorage.getItem("token");
-      const formData = new FormData();
-      filesToUpload.forEach((file) => formData.append("images", file));
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/upload`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
+    uploadMutation.mutate(selected, {
+      onSuccess: (data) => {
+        if (data.success) {
+          onChange([...value, ...data.data]);
         }
-      );
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("Upload failed with status:", res.status, errorText);
-        throw new Error("Upload failed: " + res.status + " " + errorText);
-      }
-
-      const data = await res.json();
-      if (data.success) {
-        onChange([...value, ...data.data]);
-      }
-    } catch (err: any) {
-      console.error("Upload error:", err);
-      alert("Lỗi upload: " + err.message);
-    } finally {
-      setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
-    }
+      },
+      onError: (err) => {
+        console.error("Upload error:", err);
+        alert("Lỗi upload: " + err.message);
+      },
+      onSettled: () => {
+        if (inputRef.current) inputRef.current.value = "";
+      },
+    });
   };
 
   const removeImage = (idx: number) => {
@@ -137,12 +118,12 @@ export default function ImageUploader({
         {value.length < maxFiles && (
           <label
             className={`aspect-[4/3] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
-              uploading
+              uploadMutation.isPending
                 ? "border-gray-200 bg-gray-50 cursor-not-allowed"
                 : "border-gray-300 hover:border-blue-400 hover:bg-blue-50/50"
             }`}
           >
-            {uploading ? (
+            {uploadMutation.isPending ? (
               <>
                 <Loader2 size={24} className="text-gray-400 animate-spin" />
                 <span className="text-xs text-gray-400">Đang tải...</span>
@@ -162,7 +143,7 @@ export default function ImageUploader({
               multiple
               className="hidden"
               onChange={handleUpload}
-              disabled={uploading}
+              disabled={uploadMutation.isPending}
             />
           </label>
         )}

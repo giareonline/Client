@@ -5,7 +5,6 @@ import FiltersForm from "./components/filters-form";
 import BusCard from "./components/bus-card";
 import HomestayCard from "./components/homestay-card";
 import BottomAdStack from "../components/BottomAdStack";
-import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   ChevronRight,
@@ -15,25 +14,7 @@ import {
   SearchX,
 } from "lucide-react";
 import { motion } from "framer-motion";
-
-// Fetcher Function
-const fetchOrders = async (searchParams: URLSearchParams) => {
-  const serviceType = searchParams.get("serviceType") || "bus";
-  const query = searchParams.toString();
-  const endpoint = serviceType === "bus" ? "orders/bus/all" : "homestays";
-
-  const res = await fetch(
-    `${
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
-    }/${endpoint}?${query}`
-  );
-  if (!res.ok) {
-    throw new Error(
-      `Lỗi tải danh sách ${serviceType === "bus" ? "chuyến xe" : "Homestay"}`
-    );
-  }
-  return res.json();
-};
+import { usePublicOrders } from "@/app/hooks/api/useOrders";
 
 const HomePage = () => {
   const searchParams = useSearchParams();
@@ -42,10 +23,7 @@ const HomePage = () => {
   const currentPage = parseInt(searchParams.get("page") || "1");
   const serviceType = searchParams.get("serviceType") || "bus";
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["allOrders", searchParams.toString()],
-    queryFn: () => fetchOrders(searchParams),
-  });
+  const { data, isLoading, error } = usePublicOrders(searchParams);
 
   const orders = data?.data || [];
   const meta = data?.meta;

@@ -1,28 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useAlert } from "./AlertContext";
+import { API_URL } from "@/app/lib/axios";
+import { refreshUserData } from "@/app/hooks/api/useAuth";
 
 export default function NotificationListener() {
   const alert = useAlert();
-  const [isConnected, setIsConnected] = useState(false);
+  const alertRef = useRef(alert);
+  alertRef.current = alert;
 
   useEffect(() => {
-    // Chỉ kết nối khi có token
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    // Trong Fetch API không hỗ trợ stream tốt bằng EventSource, 
-    // nhưng EventSource nguyên bản không hỗ trợ truyền Custom Header (như Authorization).
-    // Nên chúng ta tạo token query string ngắn hạn hoặc dùng polyfill. 
-    // Tuy nhiên, để đơn giản và hoạt động trên browser, ta có thể dùng Fetch kết hợp ReadableStream
-    // hoặc một thư viện SSE nhỏ. Ở đây ta dùng Fetch ReadableStream để tự xử lý SSE.
-    
     const abortController = new AbortController();
 
     const connectSSE = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/notifications/stream`, {
+        const response = await fetch(`${API_URL}/notifications/stream`, {
           signal: abortController.signal,
           headers: {
             Authorization: `Bearer ${token}`,
@@ -34,7 +30,6 @@ export default function NotificationListener() {
 
         const reader = response.body?.getReader();
         const decoder = new TextDecoder("utf-8");
-        setIsConnected(true);
 
         if (!reader) return;
 
@@ -54,27 +49,16 @@ export default function NotificationListener() {
                 const data = JSON.parse(dataStr);
                 
                 if (data.type === "PAYMENT_SUCCESS") {
-                  // Hiển thị thông báo Toast
-                  alert.success(`🎉 Bạn vừa nhận được ${data.payload.starsAdded} Sao!`);
+                  alertRef.current.success(`🎉 Bạn vừa nhận được ${data.payload.starsAdded} Sao!`);
                   
-                  // Chơi một âm thanh nhỏ (tuỳ chọn)
                   try {
-                    const audio = new Audio('/success-sound.mp3'); // File có thể chưa tồn tại, thêm try/catch
+                    const audio = new Audio('/success-sound.mp3');
                     audio.volume = 0.5;
                     audio.play().catch(() => {});
                   } catch (e) {}
 
-                  // Cập nhật lại số dư trên frontend
-                  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                  });
-                  
-                  if (res.ok) {
-                    const meData = await res.json();
-                    localStorage.setItem("user", JSON.stringify(meData.user));
-                    // Phát event để Header tự update
-                    window.dispatchEvent(new Event("userUpdated"));
-                  }
+                  // Cập nhật số dư qua helper tập trung
+                  await refreshUserData();
                 }
               } catch (e) {
                 console.error("Lỗi parse SSE data", e);
@@ -83,7 +67,7 @@ export default function NotificationListener() {
           }
         }
       } catch (err) {
-        setIsConnected(false);
+        if (abortController.signal.aborted) return;
         // Tự động kết nối lại sau 5s nếu mất mạng
         setTimeout(connectSSE, 5000);
       }
@@ -94,7 +78,7 @@ export default function NotificationListener() {
     return () => {
       abortController.abort();
     };
-  }, []); // Remove alert from dependency array to prevent infinite loop
+  }, []); // Empty deps — chỉ mount 1 lần
 
-  return null; // Component này chạy ẩn, không render UI
+  return null;
 }
