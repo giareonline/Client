@@ -55,9 +55,17 @@ export default function FiltersForm() {
 
   const handleTabChange = (type: "bus" | "homestay") => {
     setValue("serviceType", type);
-    const params = new URLSearchParams();
-    params.set("serviceType", type);
-    router.push(`/?${params.toString()}`);
+    const currentData = methods.getValues();
+    
+    // Sync dates between tabs
+    if (type === "homestay") {
+      currentData.checkInDate = currentData.fromDate;
+    } else {
+      currentData.fromDate = currentData.checkInDate;
+    }
+    
+    currentData.serviceType = type;
+    onSubmit(currentData);
   };
 
   const onSubmit = (data: SchemaType) => {
