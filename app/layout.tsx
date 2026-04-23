@@ -4,6 +4,8 @@ import { Inter } from "next/font/google";
 import AuthProvider from "./components/AuthProvider";
 import Providers from "./providers";
 import { AlertProvider } from "./components/AlertContext";
+import PageTracker from "./components/PageTracker";
+import NotificationListener from "./components/NotificationListener";
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
@@ -27,7 +29,9 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning className={inter.variable}>
       <body className={`${inter.className} bg-[#F8FAFF]`}>
         <Providers>
+          <PageTracker />
           <AlertProvider>
+            <NotificationListener />
             <AuthProvider>{children}</AuthProvider>
           </AlertProvider>
         </Providers>
