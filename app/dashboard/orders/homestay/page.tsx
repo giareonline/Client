@@ -149,6 +149,7 @@ export default function HomestayPage() {
                   name="propertyLocation"
                   label={{ text: "Khu vực", icon: "*" }}
                   options={[...PROVINCE_OPTIONS]}
+                  searchable
                 />
 
                 <Field.Text

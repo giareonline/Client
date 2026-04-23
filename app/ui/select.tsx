@@ -1,5 +1,5 @@
-import { ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ChevronDown, Search } from "lucide-react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { twMerge } from "tailwind-merge";
 import { Options } from "../types/types";
 import Label from "./label";
@@ -18,6 +18,7 @@ type Props = {
   };
   placeholder?: string;
   error?: boolean;
+  searchable?: boolean;
 };
 
 export function Select({
@@ -28,9 +29,12 @@ export function Select({
   InputProps,
   placeholder = "-- Chọn --",
   error,
+  searchable = false,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -42,7 +46,22 @@ export function Select({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (open && searchable) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    } else {
+      setSearchTerm("");
+    }
+  }, [open, searchable]);
+
   const selectedOption = options.find((opt) => opt.value === value);
+  
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !searchTerm) return options;
+    return options.filter((opt) => 
+      opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [options, searchable, searchTerm]);
 
   return (
     <div className="flex flex-col gap-1 w-full" ref={ref}>
@@ -76,19 +95,42 @@ export function Select({
         </div>
 
         {open && (
-          <div className="absolute top-full left-0 w-full bg-white shadow-lg rounded-lg mt-1 max-h-48 overflow-y-auto z-50">
-            {options.map((opt) => (
-              <div
-                key={opt.value}
-                className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
-                onClick={() => {
-                  onChange?.(opt.value);
-                  setOpen(false);
-                }}
-              >
-                {opt.label}
+          <div className="absolute top-full left-0 w-full bg-white shadow-lg rounded-lg mt-1 z-50 overflow-hidden flex flex-col">
+            {searchable && (
+              <div className="p-2 border-b border-gray-100 sticky top-0 bg-white z-10" onClick={(e) => e.stopPropagation()}>
+                <div className="relative">
+                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Tìm kiếm..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-md py-1.5 pl-8 pr-3 text-sm focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-300 transition-all"
+                  />
+                </div>
               </div>
-            ))}
+            )}
+            <div className="overflow-y-auto max-h-60">
+              {filteredOptions.length > 0 ? (
+                filteredOptions.map((opt) => (
+                  <div
+                    key={opt.value}
+                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm"
+                    onClick={() => {
+                      onChange?.(opt.value);
+                      setOpen(false);
+                    }}
+                  >
+                    {opt.label}
+                  </div>
+                ))
+              ) : (
+                <div className="px-4 py-3 text-sm text-gray-500 text-center italic">
+                  Không tìm thấy kết quả
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

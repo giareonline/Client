@@ -143,6 +143,7 @@ export default function FiltersForm() {
                   ),
                 }}
                 options={[...PROVINCE_OPTIONS]}
+                searchable
               />
               <Field.Select
                 name="toLocation"
@@ -153,6 +154,7 @@ export default function FiltersForm() {
                   ),
                 }}
                 options={[...PROVINCE_OPTIONS]}
+                searchable
               />
               <Field.DatePicker
                 label={{ text: "Ngày xuất phát" }}
@@ -170,6 +172,7 @@ export default function FiltersForm() {
                   ),
                 }}
                 options={[...PROVINCE_OPTIONS]}
+                searchable
               />
               <Field.DatePicker
                 label={{ text: "Ngày nhận phòng" }}

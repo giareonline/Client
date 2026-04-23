@@ -122,6 +122,7 @@ const BusPage = () => {
               startAdornment: <MapPin size={16} className="text-green-500" />,
             }}
             options={[...PROVINCE_OPTIONS]}
+            searchable
           />
           <Field.Select
             name="toLocation"
@@ -130,6 +131,7 @@ const BusPage = () => {
               startAdornment: <MapPin size={16} className="text-red-500" />,
             }}
             options={[...PROVINCE_OPTIONS]}
+            searchable
           />
           <Field.DatePicker
             label={{ text: "Ngày xuất phát", icon: "*" }}

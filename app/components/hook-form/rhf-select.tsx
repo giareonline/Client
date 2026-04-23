@@ -20,6 +20,7 @@ type Props = InputProps & {
     endAdornment?: React.ReactNode;
   };
   placeholder?: string;
+  searchable?: boolean;
 };
 
 export function RHFSelect({
@@ -28,6 +29,7 @@ export function RHFSelect({
   options,
   InputProps,
   placeholder = "-- Chọn --",
+  searchable = false,
 }: Props) {
   const { control, clearErrors } = useFormContext();
   const { errors } = useFormState({ name });
@@ -64,6 +66,7 @@ export function RHFSelect({
             InputProps={InputProps}
             placeholder={placeholder}
             error={!!fieldState.error}
+            searchable={searchable}
           />
           {fieldState.error && (
             <AnimatePresence>
