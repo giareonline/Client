@@ -89,10 +89,15 @@ export default function HomestayPage() {
     const formattedData = {
       ...data,
       images,
-      checkInDate:
-        data.checkInDate instanceof Date
-          ? data.checkInDate.toISOString()
-          : data.checkInDate,
+      checkInDate: (function() {
+        if (data.checkInDate instanceof Date) {
+          const y = data.checkInDate.getFullYear();
+          const m = String(data.checkInDate.getMonth() + 1).padStart(2, "0");
+          const d = String(data.checkInDate.getDate()).padStart(2, "0");
+          return `${y}-${m}-${d}`;
+        }
+        return data.checkInDate;
+      })(),
     };
 
     mutation.mutate(formattedData, {

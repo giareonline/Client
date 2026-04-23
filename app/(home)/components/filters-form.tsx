@@ -67,20 +67,30 @@ export default function FiltersForm() {
       if (data.fromLocation) params.set("fromLocation", data.fromLocation);
       if (data.toLocation) params.set("toLocation", data.toLocation);
       if (data.fromDate) {
-        const dateStr =
-          data.fromDate instanceof Date
-            ? data.fromDate.toISOString()
-            : data.fromDate;
+        let dateStr = "";
+        if (data.fromDate instanceof Date) {
+          const y = data.fromDate.getFullYear();
+          const m = String(data.fromDate.getMonth() + 1).padStart(2, "0");
+          const d = String(data.fromDate.getDate()).padStart(2, "0");
+          dateStr = `${y}-${m}-${d}`;
+        } else {
+          dateStr = data.fromDate;
+        }
         params.set("fromDate", dateStr.split("T")[0]);
       }
     } else {
       if (data.propertyLocation)
         params.set("propertyLocation", data.propertyLocation);
       if (data.checkInDate) {
-        const dateStr =
-          data.checkInDate instanceof Date
-            ? data.checkInDate.toISOString()
-            : data.checkInDate;
+        let dateStr = "";
+        if (data.checkInDate instanceof Date) {
+          const y = data.checkInDate.getFullYear();
+          const m = String(data.checkInDate.getMonth() + 1).padStart(2, "0");
+          const d = String(data.checkInDate.getDate()).padStart(2, "0");
+          dateStr = `${y}-${m}-${d}`;
+        } else {
+          dateStr = data.checkInDate;
+        }
         params.set("checkInDate", dateStr.split("T")[0]);
       }
     }

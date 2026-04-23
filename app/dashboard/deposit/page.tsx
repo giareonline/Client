@@ -25,7 +25,7 @@ import { usePaymentHistory, usePaymentStatus, useCreateDeposit, useSimulatePayme
 import { refreshUserData } from "@/app/hooks/api/useAuth";
 
 const AMOUNTS = [
-  { label: "5.000đ", value: 5000, stars: 5 },
+ 
   { label: "10.000đ", value: 10000, stars: 10 },
   { label: "100.000đ", value: 100000, stars: 100 },
   { label: "200.000đ", value: 200000, stars: 200 },
@@ -93,20 +93,20 @@ export default function DepositPage() {
     });
   };
 
-  const simulateSuccess = async () => {
-    if (!paymentData) return;
-    simulateMutation.mutate(paymentData.paymentId, {
-      onSuccess: async () => {
-        await refreshUserData();
-        alert.success(`🎉 Nạp sao thành công! Số dư đã được cập nhật.`);
-        setPaymentData(null);
-        setActiveTab("history");
-      },
-      onError: () => {
-        alert.error("Lỗi khi giả lập nạp tiền");
-      },
-    });
-  };
+//   const simulateSuccess = async () => {
+//     if (!paymentData) return;
+//     simulateMutation.mutate(paymentData.paymentId, {
+//       onSuccess: async () => {
+//         await refreshUserData();
+//         alert.success(`🎉 Nạp sao thành công! Số dư đã được cập nhật.`);
+//         setPaymentData(null);
+//         setActiveTab("history");
+//       },
+//       onError: () => {
+//         alert.error("Lỗi khi giả lập nạp tiền");
+//       },
+//     });
+//   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -271,13 +271,13 @@ export default function DepositPage() {
                                     <p className="text-left font-medium leading-relaxed">Dùng ứng dụng ngân hàng quét mã và <span className="underline font-bold">giữ nguyên</span> nội dung chuyển khoản.</p>
                                 </div>
                                 
-                                <button 
+                                {/* <button 
                                     onClick={simulateSuccess}
                                     disabled={simulateMutation.isPending}
                                     className="w-full py-2 text-[10px] text-gray-300 hover:text-blue-400 font-bold uppercase tracking-widest transition-colors"
                                 >
                                     {simulateMutation.isPending ? "Đang xử lý..." : "[ DEV: Bấm để giả lập thành công ]"}
-                                </button>
+                                </button> */}
                             </div>
                         </Card>
                     ) : (

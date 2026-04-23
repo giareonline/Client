@@ -89,7 +89,15 @@ const BusPage = () => {
       {
         ...data,
         images,
-        fromDate: data.fromDate instanceof Date ? data.fromDate.toISOString() : data.fromDate,
+        fromDate: (function() {
+          if (data.fromDate instanceof Date) {
+            const y = data.fromDate.getFullYear();
+            const m = String(data.fromDate.getMonth() + 1).padStart(2, "0");
+            const d = String(data.fromDate.getDate()).padStart(2, "0");
+            return `${y}-${m}-${d}`;
+          }
+          return data.fromDate;
+        })(),
       },
       {
         onSuccess: (responseData) => {
