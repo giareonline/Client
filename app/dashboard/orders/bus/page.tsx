@@ -39,7 +39,7 @@ const BusPage = () => {
     defaultValues: {
       fromLocation: "",
       toLocation: "",
-      fromDate: "",
+      fromDate: new Date() as any,
       fromTime: "",
       toTime: "",
       fromDestination: "",

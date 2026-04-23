@@ -44,7 +44,7 @@ export default function HomestayPage() {
     resolver: zodResolver(schema),
     defaultValues: {
       propertyLocation: "",
-      checkInDate: undefined,
+      checkInDate: new Date() as any,
       brand: "",
       phone: "",
       priceTicket: "",

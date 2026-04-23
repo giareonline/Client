@@ -31,9 +31,9 @@ export default function FiltersForm() {
       serviceType: (searchParams.get("serviceType") as any) || "bus",
       fromLocation: searchParams.get("fromLocation") || "",
       toLocation: searchParams.get("toLocation") || "",
-      fromDate: searchParams.get("fromDate") || "",
+      fromDate: searchParams.get("fromDate") || new Date(),
       propertyLocation: searchParams.get("propertyLocation") || "",
-      checkInDate: searchParams.get("checkInDate") || "",
+      checkInDate: searchParams.get("checkInDate") || new Date(),
       brand: searchParams.get("brand") || "",
     },
   });
@@ -46,9 +46,9 @@ export default function FiltersForm() {
       serviceType: (searchParams.get("serviceType") as any) || "bus",
       fromLocation: searchParams.get("fromLocation") || "",
       toLocation: searchParams.get("toLocation") || "",
-      fromDate: searchParams.get("fromDate") || "",
+      fromDate: searchParams.get("fromDate") || new Date(),
       propertyLocation: searchParams.get("propertyLocation") || "",
-      checkInDate: searchParams.get("checkInDate") || "",
+      checkInDate: searchParams.get("checkInDate") || new Date(),
       brand: searchParams.get("brand") || "",
     });
   }, [searchParams, reset]);
