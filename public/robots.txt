@@ -8,4 +8,4 @@ Allow: /
 Disallow: /dashboard/
 Disallow: /api/
 
-Sitemap: https://giareonline.com/sitemap.xml
+Sitemap: https://giarevietonline.com/sitemap.xml
