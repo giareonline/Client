@@ -73,7 +73,7 @@ export default function PortfolioPage() {
     <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-3xl mx-auto">
         {/* Back navigation */}
-        <Link href="/" className="inline-flex items-center text-gray-500 hover:text-green-600 mb-6 transition-colors font-medium">
+        <Link href="/" className="inline-flex items-center text-gray-500 hover:text-[#1E3A5F] mb-6 transition-colors font-medium">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Quay lại
         </Link>
@@ -81,7 +81,7 @@ export default function PortfolioPage() {
         {/* Profile Card */}
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
           {/* Header Banner - with subtle gradient */}
-          <div className="h-40 bg-gradient-to-r from-green-400 to-emerald-600 relative overflow-hidden">
+          <div className="h-40 bg-gradient-to-r from-[#1E3A5F] to-[#2D5A8E] relative overflow-hidden">
              {/* Decorative circles */}
              <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
              <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
@@ -99,7 +99,7 @@ export default function PortfolioPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center text-green-500">
+                    <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center text-blue-500">
                       <User size={48} />
                     </div>
                   )}
@@ -120,7 +120,7 @@ export default function PortfolioPage() {
             {/* Profile Info Text */}
             <div className="mt-6">
               <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{user?.name}</h1>
-              <p className="text-green-600 font-medium mt-1 flex items-center">
+              <p className="text-[#1E3A5F] font-bold mt-1 flex items-center">
                 #{user?._id?.substring(0, 8) || "00000000"}
               </p>
             </div>

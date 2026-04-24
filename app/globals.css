@@ -130,3 +130,9 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+
+/* ─── Move NextTopLoader under the Header (Header height is approx 98px) ─── */
+#nprogress .bar {
+  top: 78px !important;
+}
+

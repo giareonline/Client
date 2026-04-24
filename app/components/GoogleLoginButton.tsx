@@ -41,7 +41,6 @@ export default function GoogleLoginButton() {
             <GoogleLogin
                 onSuccess={handleSuccess}
                 onError={handleError}
-                useOneTap
             />
         </div>
     );

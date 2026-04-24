@@ -1,5 +1,6 @@
 import AdsColumn from "../components/AdsColumn";
 import Header from "../components/header";
+import JsonLd from "../components/JsonLd";
 
 export default function HomeLayout({
   children,
@@ -9,6 +10,7 @@ export default function HomeLayout({
   return (
     <div className="min-h-screen bg-[#F8FAFF]">
       <Header />
+      <JsonLd />
 
       <div className="max-w-7xl mx-auto px-4 mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-[250px_minmax(0,1fr)_250px] gap-6">

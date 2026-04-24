@@ -30,7 +30,7 @@ export default function Header() {
       const token = localStorage.getItem("token");
       if (!token) return;
       try {
-        const { data } = await api.get('/auth/me');
+        const { data } = await api.get("/auth/me");
         if (data.success && data.user) {
           setUser(data.user);
           localStorage.setItem("user", JSON.stringify(data.user));
@@ -55,6 +55,7 @@ export default function Header() {
 
   return (
     <header
+      role="banner"
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
           ? "bg-[#1E3A5F]/95 backdrop-blur-md shadow-lg shadow-[#1E3A5F]/10"
@@ -63,28 +64,29 @@ export default function Header() {
     >
       <div className="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-white/10 p-1 group-hover:bg-white/20 transition-colors">
-            <Image
-              alt="GiaReOnline logo"
-              width={40}
-              height={30}
-              src="/logo.png"
-              className="object-contain"
-            />
-          </div>
-          <div className="hidden sm:flex flex-col">
-            <span className="text-white font-bold text-lg leading-tight tracking-tight">
-              GiaReOnline
+        <Link href="/" className="flex items-center gap-2.5 group" aria-label="GiaReViet - Trang chủ">
+          <Image
+            alt="GiaReViet logo"
+            width={56}
+            height={56}
+            src="/logo.png"
+            className="object-contain w-[56px] h-[56px]"
+          />
+          <div className="hidden sm:flex flex-col justify-center">
+            <span className="text-xl font-black tracking-tight flex items-baseline leading-none">
+              <span className="text-white drop-shadow-sm">GiaRe</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D8111F] to-[#851225] drop-shadow-sm ml-[1px]">
+                Viet
+              </span>
             </span>
-            <span className="text-blue-200/70 text-[10px] leading-tight font-medium">
+            <span className="text-blue-200/80 text-[10px] leading-tight font-bold mt-1 tracking-widest uppercase">
               Đặt vé • Homestay
             </span>
           </div>
         </Link>
 
         {/* Right side */}
-        <div className="flex items-center gap-2">
+        <nav className="flex items-center gap-2" aria-label="Điều hướng chính">
           <Link
             href="#"
             className="hidden sm:flex items-center gap-1.5 text-blue-100/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
@@ -103,7 +105,7 @@ export default function Header() {
               Đăng nhập
             </button>
           )}
-        </div>
+        </nav>
       </div>
 
       <LoginModal

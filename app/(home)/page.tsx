@@ -23,7 +23,25 @@ const HomePage = () => {
   const currentPage = parseInt(searchParams.get("page") || "1");
   const serviceType = searchParams.get("serviceType") || "bus";
 
-  const { data, isLoading, error } = usePublicOrders(searchParams);
+  // Build params with defaults for initial load
+  const apiParams = new URLSearchParams(searchParams.toString());
+  if (!apiParams.has("serviceType")) {
+    apiParams.set("serviceType", "bus");
+  }
+  
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, "0");
+  const d = String(today.getDate()).padStart(2, "0");
+  const todayStr = `${y}-${m}-${d}`;
+
+  if (serviceType === "bus" && !apiParams.has("fromDate")) {
+    apiParams.set("fromDate", todayStr);
+  } else if (serviceType === "homestay" && !apiParams.has("checkInDate")) {
+    apiParams.set("checkInDate", todayStr);
+  }
+
+  const { data, isLoading, error } = usePublicOrders(apiParams);
 
   const orders = data?.data || [];
   const meta = data?.meta;

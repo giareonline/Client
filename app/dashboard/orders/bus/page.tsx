@@ -59,6 +59,7 @@ const BusPage = () => {
   const [remainingStars, setRemainingStars] = useState<number | undefined>();
   const [deductedStars, setDeductedStars] = useState<number | undefined>();
   const [images, setImages] = useState<string[]>([]);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // ─── React Query Hooks ───
   const { data: profileData } = useUserProfile();
@@ -235,11 +236,41 @@ const BusPage = () => {
         <ImageUploader value={images} onChange={setImages} maxFiles={4} />
       </Card>
       <Card>
+        <div className="flex flex-col gap-4">
+          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex gap-3 items-start">
+            <div className="text-orange-500 shrink-0 mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <div className="text-sm text-orange-800">
+              <p className="font-bold mb-1">Chính sách đăng bài trên GiaReViet</p>
+              <ul className="list-disc pl-4 space-y-1 text-orange-700">
+                <li>Bạn cam kết mọi thông tin chuyến xe, giá vé và hình ảnh là <strong>hoàn toàn chính xác</strong> và không vi phạm bản quyền.</li>
+                <li>Nếu phát hiện thông tin sai sự thật hoặc hình ảnh ảo, bài đăng sẽ bị gỡ và tài khoản sẽ bị <strong>trừ sao phạt</strong>.</li>
+                <li>Trường hợp vi phạm nghiêm trọng (như hành vi lừa đảo người dùng), tài khoản của bạn sẽ bị <strong>khoá vĩnh viễn</strong>.</li>
+              </ul>
+            </div>
+          </div>
+          
+          <label className="flex items-center gap-3 cursor-pointer p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">
+            <input 
+              type="checkbox" 
+              className="w-5 h-5 rounded border-slate-300 text-orange-500 focus:ring-orange-500" 
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+            />
+            <span className="text-sm font-semibold text-slate-700">
+              Tôi đã đọc, hiểu rõ rủi ro và đồng ý với các chính sách trên.
+            </span>
+          </label>
+        </div>
+      </Card>
+
+      <Card>
         <div className="flex flex-col gap-3">
           <Button 
             type="submit" 
-            disabled={mutation.isPending || !hasEnoughStars}
-            className={`flex items-center justify-center gap-2 w-full ${(mutation.isPending || !hasEnoughStars) ? "opacity-70 cursor-not-allowed" : ""}`}
+            disabled={mutation.isPending || !hasEnoughStars || !agreedToTerms}
+            className={`flex items-center justify-center gap-2 w-full ${(mutation.isPending || !hasEnoughStars || !agreedToTerms) ? "opacity-70 cursor-not-allowed" : ""}`}
           >
             {mutation.isPending ? "Đang xử lý..." : (
               <>

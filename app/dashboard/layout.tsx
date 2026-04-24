@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import Header from "../components/header";
 import { MobileBottomNav } from "./components/mobile-bottom-nav";
 import Sidebar from "./components/sidebar";
 
+export const metadata: Metadata = {
+  title: "Tài khoản",
+  description:
+    "Quản lý tài khoản GiaReViet của bạn. Xem đơn hàng, nạp tiền, quản lý thông tin cá nhân.",
+};
 export default function DashboardLayout({
   children,
 }: {
