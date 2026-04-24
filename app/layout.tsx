@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import type { Metadata } from "next";
@@ -112,7 +113,9 @@ export default function RootLayout({
           zIndex={1600}
         />
         <Providers>
-          <PageTracker />
+          <Suspense fallback={null}>
+            <PageTracker />
+          </Suspense>
           <AlertProvider>
             <NotificationListener />
             <AuthProvider>
