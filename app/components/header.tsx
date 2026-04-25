@@ -90,7 +90,7 @@ export default function Header() {
         {/* Right side */}
         <nav className="flex items-center gap-2" aria-label="Điều hướng chính">
           <Link
-            href="#"
+            href="/huong-dan"
             className="hidden sm:flex items-center gap-1.5 text-blue-100/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
           >
             <HelpCircle size={15} />
