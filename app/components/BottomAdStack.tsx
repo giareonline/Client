@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/autoplay";
@@ -12,9 +12,16 @@ import { useBanners } from "../hooks/api/useBanners";
 
 export default function BottomAdsSwiper() {
   const [visible, setVisible] = useState(true);
-  const { data: allBanners } = useBanners();
+  const [mounted, setMounted] = useState(false);
+  const { data: allBanners, isLoading } = useBanners();
 
-  if (!visible) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render anything on the server or before mount
+  // This prevents hydration mismatch because server and client both render null initially
+  if (!mounted || !visible) return null;
 
   // Fallback if no banners available
   const fallbackImages = [
@@ -23,7 +30,9 @@ export default function BottomAdsSwiper() {
   ];
 
   const banners = allBanners && allBanners.length > 0 ? allBanners : fallbackImages;
-    
+
+  if (isLoading) return null;
+
   return (
     <div className="lg:hidden fixed bottom-0 inset-x-0 md:inset-x-16 z-50 shadow-lg p-2">
       

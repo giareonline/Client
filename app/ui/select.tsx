@@ -55,41 +55,46 @@ export function Select({
   }, [open, searchable]);
 
   const selectedOption = options.find((opt) => opt.value === value);
-  
+
   const filteredOptions = useMemo(() => {
     if (!searchable || !searchTerm) return options;
-    return options.filter((opt) => 
-      opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+    return options.filter((opt) =>
+      opt.label.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [options, searchable, searchTerm]);
 
   return (
     <div className="flex flex-col gap-1 w-full" ref={ref}>
       <div className="relative w-full">
-       
         <div
           className={twMerge(
             "flex items-center justify-between px-4 py-3 h-12 rounded-lg cursor-pointer border bg-white",
-            error ? "border-red-500" : "border-gray-300"
+            error ? "border-red-500" : "border-gray-300",
           )}
           onClick={() => setOpen((prev) => !prev)}
         >
-          <div className="flex items-center gap-2">
-            {InputProps?.startAdornment}
+          <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+            {InputProps?.startAdornment && (
+              <div className="flex-shrink-0">{InputProps.startAdornment}</div>
+            )}
 
             {selectedOption ? (
-              <span className="text-gray-800 font-medium">
-                {selectedOption.label}
-              </span>
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span className="text-gray-800 font-medium truncate block w-full">
+                  {selectedOption.label}
+                </span>
+              </div>
             ) : (
-              <span className="text-gray-400">{placeholder}</span>
+              <span className="text-gray-400 truncate block w-full">
+                {placeholder}
+              </span>
             )}
           </div>
 
           <ChevronDown
             className={twMerge(
-              "text-gray-500 transition-transform",
-              open && "rotate-180"
+              "text-gray-500 transition-transform flex-shrink-0",
+              open && "rotate-180",
             )}
           />
         </div>
@@ -97,9 +102,15 @@ export function Select({
         {open && (
           <div className="absolute top-full left-0 w-full bg-white shadow-lg rounded-lg mt-1 z-50 overflow-hidden flex flex-col">
             {searchable && (
-              <div className="p-2 border-b border-gray-100 sticky top-0 bg-white z-10" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="p-2 border-b border-gray-100 sticky top-0 bg-white z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="relative">
-                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search
+                    size={14}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
                   <input
                     ref={inputRef}
                     type="text"
@@ -116,12 +127,13 @@ export function Select({
                 filteredOptions.map((opt) => (
                   <div
                     key={opt.value}
-                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm"
+                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm flex items-center gap-2"
                     onClick={() => {
                       onChange?.(opt.value);
                       setOpen(false);
                     }}
                   >
+                    {opt.icon}
                     {opt.label}
                   </div>
                 ))

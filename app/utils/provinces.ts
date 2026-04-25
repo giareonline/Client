@@ -1,29 +1,24 @@
-export const PROVINCE_OPTIONS = [
-  { value: "Hà Nội", label: "Hà Nội" },
-  { value: "Sapa", label: "Sapa" },
-  { value: "Nha Trang", label: "Nha Trang" },
-  { value: "Đà Lạt", label: "Đà Lạt" },
-  { value: "Tuyên Quang", label: "Tuyên Quang" },
-  { value: "Lào Cai", label: "Lào Cai" },
-  { value: "Thái Nguyên", label: "Thái Nguyên" },
-  { value: "Phú Thọ", label: "Phú Thọ" },
-  { value: "Bắc Ninh", label: "Bắc Ninh" },
-  { value: "Hưng Yên", label: "Hưng Yên" },
-  { value: "Hải Phòng", label: "Hải Phòng" },
-  { value: "Ninh Bình", label: "Ninh Bình" },
-  { value: "Quảng Trị", label: "Quảng Trị" },
-  { value: "Đà Nẵng", label: "Đà Nẵng" },
-  { value: "Quảng Ngãi", label: "Quảng Ngãi" },
-  { value: "Gia Lai", label: "Gia Lai" },
-  { value: "Khánh Hòa", label: "Khánh Hòa" },
-  { value: "Lâm Đồng", label: "Lâm Đồng" },
-  { value: "Đắk Lắk", label: "Đắk Lắk" },
-  { value: "Hồ Chí Minh", label: "TP. Hồ Chí Minh" },
-  { value: "Đồng Nai", label: "Đồng Nai" },
-  { value: "Tây Ninh", label: "Tây Ninh" },
-  { value: "Cần Thơ", label: "Cần Thơ" },
-  { value: "Vĩnh Long", label: "Vĩnh Long" },
-  { value: "Đồng Tháp", label: "Đồng Tháp" },
-  { value: "Cà Mau", label: "Cà Mau" },
-  { value: "An Giang", label: "An Giang" },
-] as const;
+import { provinces } from "../dataset/provinces";
+import React from "react";
+import { MapPin } from "lucide-react";
+
+export const PROVINCE_OPTIONS = Array.from(
+  new Map(
+    provinces
+      .filter((p) => p.pn || p.spn)
+      .map((p) => {
+        const isProvinceOnly = !p.spn || p.spn === p.pn;
+        const name = isProvinceOnly ? p.pn : `${p.spn}, ${p.pn}`;
+        const value = name; // Using the full readable name as value for unique matching
+        return [
+          value,
+          {
+            value,
+            label: name,
+            icon: React.createElement(MapPin, { size: 14, className: "flex-shrink-0" }),
+          },
+        ];
+      })
+  ).values()
+).sort((a, b) => a.label.localeCompare(b.label));
+
