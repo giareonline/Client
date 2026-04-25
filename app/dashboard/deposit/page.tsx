@@ -162,15 +162,15 @@ export default function DepositPage() {
             <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                 {/* Left: Amount Selection */}
                 <div className="lg:col-span-2 space-y-8">
-                    <Card className="border-none shadow-2xl shadow-blue-500/5">
-                        <div className="px-8 py-6 border-b border-gray-50 flex items-center gap-3">
+                    <Card className="border-none shadow-2xl shadow-blue-500/5 p-0 overflow-hidden">
+                        <div className="px-5 sm:px-8 py-5 sm:py-6 border-b border-gray-50 flex items-center gap-3">
                             <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
                                 <CreditCard size={20} />
                             </div>
                             <h3 className="font-bold text-xl text-gray-800 tracking-tight">Chọn mệnh giá</h3>
                         </div>
-                        <div className="p-8">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-5 text-center">
+                        <div className="p-5 sm:p-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4 sm:gap-5 text-center">
                                 {AMOUNTS.map((item) => (
                                     <button
                                         key={item.value}
@@ -178,7 +178,7 @@ export default function DepositPage() {
                                             setSelectedAmount(item);
                                             setPaymentData(null);
                                         }}
-                                        className={`p-6 rounded-3xl border-2 transition-all group relative overflow-hidden ${
+                                        className={`w-full p-4 sm:p-6 rounded-[24px] border-2 transition-all group relative overflow-hidden ${
                                             selectedAmount.value === item.value
                                                 ? "border-blue-500 bg-blue-50/20 shadow-lg shadow-blue-500/10"
                                                 : "border-gray-100 hover:border-gray-200 hover:bg-gray-50/50"
@@ -234,8 +234,8 @@ export default function DepositPage() {
                 {/* Right: QR or Instructions */}
                 <div className="space-y-8">
                     {paymentData ? (
-                        <Card className="border-none shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-300 ring-4 ring-blue-500/10">
-                            <div className="p-8 text-center space-y-6">
+                        <Card className="border-none shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-300 ring-4 ring-blue-500/10 p-0">
+                            <div className="p-5 sm:p-8 text-center space-y-6">
                                 <div className="space-y-1">
                                     <h4 className="font-black text-gray-900 text-xl tracking-tight uppercase">Quét mã thanh toán</h4>
                                     <p className={`text-sm font-medium ${qrTimeLeft <= 30 ? 'text-red-500' : 'text-gray-500'}`}>
@@ -281,8 +281,8 @@ export default function DepositPage() {
                             </div>
                         </Card>
                     ) : (
-                        <Card className="border-none shadow-xl bg-gradient-to-br from-white to-gray-50/50">
-                            <div className="p-8">
+                        <Card className="border-none shadow-xl bg-gradient-to-br from-white to-gray-50/50 p-0">
+                            <div className="p-5 sm:p-8">
                                 <h4 className="font-bold text-gray-900 mb-6 uppercase text-sm tracking-[0.2em] flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
                                     Hướng dẫn nạp
@@ -313,8 +313,8 @@ export default function DepositPage() {
             </div>
         ) : (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
-                <Card className="border-none shadow-2xl overflow-hidden">
-                    <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between gap-4">
+                <Card className="border-none shadow-2xl overflow-hidden p-0">
+                    <div className="px-5 sm:px-8 py-5 sm:py-6 border-b border-gray-50 flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
                                 <History size={20} />

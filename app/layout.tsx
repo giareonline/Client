@@ -87,7 +87,7 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
   },
   verification: {
-    // google: "YOUR_GOOGLE_VERIFICATION_CODE", // Thêm sau khi đăng ký Google Search Console
+    google: "hHaCfC6ks9UiWrrCvz93xc3-FuOJpOyRt7D9GJVyYGE",
   },
   category: "travel",
 };

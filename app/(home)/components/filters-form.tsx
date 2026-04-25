@@ -4,10 +4,10 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { z as zod } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MapPin, Search, Bus, Home } from "lucide-react";
+import { MapPin, Search, Bus, Home, Filter, X } from "lucide-react";
 import { PROVINCE_OPTIONS } from "@/app/utils/provinces";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const schema = zod.object({
   serviceType: zod.enum(["bus", "homestay"]),
@@ -24,6 +24,7 @@ type SchemaType = zod.infer<typeof schema>;
 export default function FiltersForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isMobileModalOpen, setIsMobileModalOpen] = React.useState(false);
 
   const methods = useForm<SchemaType>({
     resolver: zodResolver(schema),
@@ -56,14 +57,14 @@ export default function FiltersForm() {
   const handleTabChange = (type: "bus" | "homestay") => {
     setValue("serviceType", type);
     const currentData = methods.getValues();
-    
+
     // Sync dates between tabs
     if (type === "homestay") {
       currentData.checkInDate = currentData.fromDate;
     } else {
       currentData.fromDate = currentData.checkInDate;
     }
-    
+
     currentData.serviceType = type;
     onSubmit(currentData);
   };
@@ -141,90 +142,148 @@ export default function FiltersForm() {
         ))}
       </div>
 
-      {/* Search Form */}
-      <motion.div
-        key={serviceType}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-        className="bg-white rounded-2xl p-5 shadow-lg"
-      >
-        <Form methods={methods} onSubmit={handleSubmit(onSubmit)}>
-          {serviceType === "bus" ? (
-            <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
-              <Field.Select
-                name="fromLocation"
-                label={{ text: "Xuất phát" }}
-                InputProps={{
-                  startAdornment: (
-                    <MapPin size={16} className="text-[#00C853]" />
-                  ),
-                }}
-                options={[...PROVINCE_OPTIONS]}
-                searchable
-              />
-              <Field.Select
-                name="toLocation"
-                label={{ text: "Điểm đến" }}
-                InputProps={{
-                  startAdornment: (
-                    <MapPin size={16} className="text-[#EF4444]" />
-                  ),
-                }}
-                options={[...PROVINCE_OPTIONS]}
-                searchable
-              />
-              <Field.DatePicker
-                label={{ text: "Ngày xuất phát" }}
-                name="fromDate"
-              />
-            </div>
-          ) : (
-            <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
-              <Field.Select
-                name="propertyLocation"
-                label={{ text: "Khu vực" }}
-                InputProps={{
-                  startAdornment: (
-                    <MapPin size={16} className="text-[#3B82F6]" />
-                  ),
-                }}
-                options={[...PROVINCE_OPTIONS]}
-                searchable
-              />
-              <Field.DatePicker
-                label={{ text: "Ngày nhận phòng" }}
-                name="checkInDate"
-              />
-            </div>
-          )}
+      {/* Helper function to render form content for both Desktop and Mobile */}
+      {(() => {
+        const FormContent = () => (
+          <Form methods={methods} onSubmit={handleSubmit((data) => {
+            onSubmit(data);
+            setIsMobileModalOpen(false);
+          })}>
+            {serviceType === "bus" ? (
+              <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
+                <Field.Select
+                  name="fromLocation"
+                  label={{ text: "Xuất phát" }}
+                  InputProps={{
+                    startAdornment: (
+                      <MapPin size={16} className="text-[#00C853]" />
+                    ),
+                  }}
+                  options={[...PROVINCE_OPTIONS]}
+                  searchable
+                />
+                <Field.Select
+                  name="toLocation"
+                  label={{ text: "Điểm đến" }}
+                  InputProps={{
+                    startAdornment: (
+                      <MapPin size={16} className="text-[#EF4444]" />
+                    ),
+                  }}
+                  options={[...PROVINCE_OPTIONS]}
+                  searchable
+                />
+                <Field.DatePicker
+                  label={{ text: "Ngày xuất phát" }}
+                  name="fromDate"
+                />
+              </div>
+            ) : (
+              <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
+                <Field.Select
+                  name="propertyLocation"
+                  label={{ text: "Khu vực" }}
+                  InputProps={{
+                    startAdornment: (
+                      <MapPin size={16} className="text-[#3B82F6]" />
+                    ),
+                  }}
+                  options={[...PROVINCE_OPTIONS]}
+                  searchable
+                />
+                <Field.DatePicker
+                  label={{ text: "Ngày nhận phòng" }}
+                  name="checkInDate"
+                />
+              </div>
+            )}
 
-          <div className="flex flex-wrap items-end gap-3 mt-4">
-            <div className="flex-1 min-w-[200px]">
-              <Field.Text
-                label={{
-                  text:
-                    serviceType === "bus" ? "Nhà xe" : "Tên Homestay",
-                }}
-                name="brand"
-                placeholder={
-                  serviceType === "bus"
-                    ? "Tên nhà xe..."
-                    : "Tên Homestay/Villa..."
-                }
-              />
-            </div>
+            <div className="flex flex-wrap items-end gap-3 mt-4">
+              <div className="flex-1 min-w-[200px]">
+                <Field.Text
+                  label={{
+                    text: serviceType === "bus" ? "Nhà xe" : "Tên Homestay",
+                  }}
+                  name="brand"
+                  placeholder={
+                    serviceType === "bus"
+                      ? "Tên nhà xe..."
+                      : "Tên Homestay/Villa..."
+                  }
+                />
+              </div>
 
-            <button
-              type="submit"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 h-[46px] px-8 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] hover:from-[#FF8C42] hover:to-[#FFA060] text-white font-semibold rounded-xl transition-all duration-300 shadow-md glow-hover cursor-pointer whitespace-nowrap flex-none"
+              <button
+                type="submit"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 h-[46px] px-8 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] hover:from-[#FF8C42] hover:to-[#FFA060] text-white font-semibold rounded-xl transition-all duration-300 shadow-md glow-hover cursor-pointer whitespace-nowrap flex-none"
+              >
+                <Search size={18} />
+                Tìm kiếm
+              </button>
+            </div>
+          </Form>
+        );
+
+        return (
+          <>
+            {/* Desktop Form */}
+            <motion.div
+              key={serviceType}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
+              className="hidden sm:block bg-white rounded-2xl p-5 shadow-lg"
             >
-              <Search size={18} />
-              Tìm kiếm
-            </button>
-          </div>
-        </Form>
-      </motion.div>
+              <FormContent />
+            </motion.div>
+
+            {/* Mobile Form Bottom Sheet */}
+            <AnimatePresence>
+              {isMobileModalOpen && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsMobileModalOpen(false)}
+                    className="sm:hidden fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm"
+                  />
+                  <motion.div
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className="sm:hidden fixed bottom-0 left-0 right-0 bg-[#F8FAFF] rounded-t-[32px] z-[101] p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+                  >
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-extrabold text-[#1E3A5F]">Bộ lọc tìm kiếm</h3>
+                      <button 
+                        onClick={() => setIsMobileModalOpen(false)} 
+                        className="p-2 bg-white text-gray-500 rounded-full shadow-sm border border-gray-100 active:scale-95 transition-transform"
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
+                    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                      <FormContent />
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+
+            {/* Floating Filter Button (Mobile only) */}
+            <div className="sm:hidden fixed bottom-6 left-6 z-[90]">
+              <button
+                onClick={() => setIsMobileModalOpen(true)}
+                className="bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] text-white p-4 rounded-full shadow-[0_8px_30px_rgb(255,107,53,0.4)] flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+              >
+                <Filter size={24} />
+              </button>
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }

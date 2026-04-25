@@ -61,7 +61,7 @@ export default function Header() {
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
           ? "bg-[#1E3A5F]/95 backdrop-blur-md shadow-lg shadow-[#1E3A5F]/10"
-          : "bg-gradient-to-r from-[#1E3A5F] to-[#2D5A8E]"
+          : "bg-[#1E3A5F]"
       }`}
     >
       <div className="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
