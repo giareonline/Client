@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { z as zod } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MapPin, Star } from "lucide-react";
-import { PROVINCE_OPTIONS } from "@/app/utils/provinces";
+import { useProvinces } from "@/app/hooks/api/useProvinces";
 import Button from "@/app/ui/button";
 import { useAlert } from "@/app/components/AlertContext";
 import OrderSuccessModal from "../components/OrderSuccessModal";
@@ -66,6 +66,7 @@ const BusPage = () => {
   const userStars = profileData?.user?.stars ?? 0;
   
   const mutation = useCreateBusOrder();
+  const { data: provinceOptions = [] } = useProvinces();
 
   const { watch } = methods;
   const listTop = watch("listTop");
@@ -82,10 +83,6 @@ const BusPage = () => {
   const hasEnoughStars = userStars >= requiredStars;
 
   const onSubmit = (data: SchemaType) => {
-    if (images.length === 0) {
-      showError("Hình ảnh nhà xe là bắt buộc");
-      return;
-    }
     mutation.mutate(
       {
         ...data,
@@ -130,7 +127,7 @@ const BusPage = () => {
             InputProps={{
               startAdornment: <MapPin size={16} className="text-green-500" />,
             }}
-            options={[...PROVINCE_OPTIONS]}
+            options={provinceOptions}
             searchable
           />
           <Field.Select
@@ -139,7 +136,7 @@ const BusPage = () => {
             InputProps={{
               startAdornment: <MapPin size={16} className="text-red-500" />,
             }}
-            options={[...PROVINCE_OPTIONS]}
+            options={provinceOptions}
             searchable
           />
           <Field.DatePicker
@@ -231,7 +228,7 @@ const BusPage = () => {
       </Card>
       <Card>
         <h3 className="text-sm font-semibold text-gray-700 mb-3">
-          Hình ảnh nhà xe <span className="text-red-500">*</span>
+          Hình ảnh nhà xe
         </h3>
         <ImageUploader value={images} onChange={setImages} maxFiles={4} />
       </Card>

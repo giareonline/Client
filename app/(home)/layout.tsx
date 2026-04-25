@@ -1,6 +1,7 @@
 import AdsColumn from "../components/AdsColumn";
 import Header from "../components/header";
 import JsonLd from "../components/JsonLd";
+import PromoSlider from "./components/promo-slider";
 
 export default function HomeLayout({
   children,
@@ -23,6 +24,10 @@ export default function HomeLayout({
           {/* Right Ads Desktop */}
           <AdsColumn side="right" />
         </div>
+      </div>
+      <div className="mt-10">
+        {" "}
+        <PromoSlider />
       </div>
     </div>
   );

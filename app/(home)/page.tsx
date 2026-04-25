@@ -2,17 +2,12 @@
 
 import React, { Suspense } from "react";
 import FiltersForm from "./components/filters-form";
+import PromoSlider from "./components/promo-slider";
 import BusCard from "./components/bus-card";
 import HomestayCard from "./components/homestay-card";
 import BottomAdStack from "../components/BottomAdStack";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  ChevronRight,
-  ChevronLeft,
-  Bus,
-  Home,
-  SearchX,
-} from "lucide-react";
+import { ChevronRight, ChevronLeft, Bus, Home, SearchX } from "lucide-react";
 import { motion } from "framer-motion";
 import { usePublicOrders } from "@/app/hooks/api/useOrders";
 
@@ -28,7 +23,7 @@ const HomePage = () => {
   if (!apiParams.has("serviceType")) {
     apiParams.set("serviceType", "bus");
   }
-  
+
   const today = new Date();
   const y = today.getFullYear();
   const m = String(today.getMonth() + 1).padStart(2, "0");
@@ -107,8 +102,8 @@ const HomePage = () => {
             <SearchX size={28} className="text-[#94A3B8]" />
           </div>
           <h3 className="text-base font-bold text-[#1E3A5F]">
-            Không tìm thấy{" "}
-            {serviceType === "bus" ? "chuyến xe" : "Homestay"} nào
+            Không tìm thấy {serviceType === "bus" ? "chuyến xe" : "Homestay"}{" "}
+            nào
           </h3>
           <p className="text-sm text-[#94A3B8] mt-1.5">
             Vui lòng thử thay đổi bộ lọc tìm kiếm.
@@ -184,7 +179,7 @@ const HomePage = () => {
               }
 
               return null;
-            }
+            },
           )}
 
           <button
@@ -205,15 +200,16 @@ const HomePage = () => {
 
 export default function Page() {
   return (
-    <Suspense fallback={
-      <div className="flex flex-col gap-5">
-        <div className="shimmer rounded-2xl h-64 w-full" />
-        <div className="shimmer rounded-2xl h-44 w-full" />
-        <div className="shimmer rounded-2xl h-44 w-full" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex flex-col gap-5">
+          <div className="shimmer rounded-2xl h-64 w-full" />
+          <div className="shimmer rounded-2xl h-44 w-full" />
+          <div className="shimmer rounded-2xl h-44 w-full" />
+        </div>
+      }
+    >
       <HomePage />
     </Suspense>
   );
 }
-

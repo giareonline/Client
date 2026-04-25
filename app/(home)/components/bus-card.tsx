@@ -5,6 +5,8 @@ import Image from "next/image";
 import { MapPin, ArrowRight, Phone, X, Copy, Check, Info, Flame, Sparkles } from "lucide-react";
 import OrderDetailsTabsModal from "./OrderDetailsTabsModal";
 import { formatCurrency } from "@/app/utils/formatCurrency";
+import NoImage from "@/app/components/NoImage";
+import { useProvinceLookup } from "@/app/hooks/api/useProvinces";
 
 interface BusOrderProps {
   order: {
@@ -29,6 +31,10 @@ export default function BusCard({ order }: BusOrderProps) {
   const [showPhone, setShowPhone] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const provinceLookup = useProvinceLookup();
+
+  const fromName = provinceLookup.get(order.fromLocation?.trim()) || order.fromLocation;
+  const toName = provinceLookup.get(order.toLocation?.trim()) || order.toLocation;
 
   const formattedPrice = order.priceTicket
     ? formatCurrency(order.priceTicket)
@@ -66,13 +72,17 @@ export default function BusCard({ order }: BusOrderProps) {
         <div className="flex items-center justify-between px-5 py-3 bg-linear-to-r from-[#F8FAFF] to-white border-b border-[#E2E8F0]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg overflow-hidden border border-[#E2E8F0] bg-white shrink-0">
-              <Image
-                src={order.images?.[0] || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTIsKyMK29ESgcgkC_XcUOt7jHzU6oOX5-jFw&s"}
-                alt={order.brand}
-                width={40}
-                height={40}
-                className="object-cover w-full h-full"
-              />
+              {order.images?.[0] ? (
+                <Image
+                  src={order.images[0]}
+                  alt={order.brand}
+                  width={40}
+                  height={40}
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <NoImage className="w-full h-full rounded-lg" />
+              )}
             </div>
             <div>
               <h3 className="font-bold text-[#1E3A5F] text-base leading-tight">
@@ -122,7 +132,7 @@ export default function BusCard({ order }: BusOrderProps) {
                     </span>
                     <span className="text-xs text-[#94A3B8]">•</span>
                     <span className="text-sm font-semibold text-[#64748B]">
-                      {order.fromLocation}
+                      {fromName}
                     </span>
                   </div>
                   <p className="text-xs text-[#94A3B8] mt-0.5 flex items-center gap-1">
@@ -139,7 +149,7 @@ export default function BusCard({ order }: BusOrderProps) {
                     </span>
                     <span className="text-xs text-[#94A3B8]">•</span>
                     <span className="text-sm font-semibold text-[#64748B]">
-                      {order.toLocation}
+                      {toName}
                     </span>
                   </div>
                   <p className="text-xs text-[#94A3B8] mt-0.5 flex items-center gap-1">
@@ -184,7 +194,7 @@ export default function BusCard({ order }: BusOrderProps) {
               Còn chỗ
             </span>
             <span className="text-xs text-[#94A3B8]">
-              {order.fromLocation} → {order.toLocation}
+              {fromName} → {toName}
             </span>
           </div>
           <button 
@@ -215,17 +225,21 @@ export default function BusCard({ order }: BusOrderProps) {
               </button>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white/20 bg-white">
-                  <Image
-                    src={order.images?.[0] || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTIsKyMK29ESgcgkC_XcUOt7jHzU6oOX5-jFw&s"}
-                    alt={order.brand}
-                    width={48}
-                    height={48}
-                    className="object-cover w-full h-full"
-                  />
+                  {order.images?.[0] ? (
+                    <Image
+                      src={order.images[0]}
+                      alt={order.brand}
+                      width={48}
+                      height={48}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <NoImage className="w-full h-full rounded-xl" />
+                  )}
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">{order.brand}</h3>
-                  <p className="text-white/70 text-xs">{order.busCategory} • {order.fromLocation} → {order.toLocation}</p>
+                  <p className="text-white/70 text-xs">{order.busCategory} • {fromName} → {toName}</p>
                 </div>
               </div>
             </div>
@@ -263,7 +277,7 @@ export default function BusCard({ order }: BusOrderProps) {
                   <p className="font-bold mb-1">Hướng dẫn đặt vé:</p>
                   <ul className="space-y-1 list-disc list-inside text-amber-600">
                     <li>Gọi trực tiếp số điện thoại trên để đặt vé</li>
-                    <li>Cung cấp tuyến đường: <span className="font-semibold">{order.fromLocation} → {order.toLocation}</span></li>
+                    <li>Cung cấp tuyến đường: <span className="font-semibold">{fromName} → {toName}</span></li>
                     <li>Thời gian khởi hành: <span className="font-semibold">{order.fromTime}</span></li>
                     <li>Giá vé tham khảo: <span className="font-semibold text-[#FF6B35]">{formattedPrice}</span></li>
                   </ul>

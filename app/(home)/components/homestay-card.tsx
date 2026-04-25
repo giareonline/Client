@@ -5,6 +5,8 @@ import Image from "next/image";
 import { MapPin, Calendar, Phone, CheckCircle2, ArrowRight, X, Copy, Check, Info, Flame, Sparkles } from "lucide-react";
 import OrderDetailsTabsModal from "./OrderDetailsTabsModal";
 import { formatCurrency } from "@/app/utils/formatCurrency";
+import NoImage from "@/app/components/NoImage";
+import { useProvinceLookup } from "@/app/hooks/api/useProvinces";
 
 interface HomestayOrderProps {
   order: {
@@ -24,6 +26,9 @@ export default function HomestayCard({ order }: HomestayOrderProps) {
   const [showPhone, setShowPhone] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const provinceLookup = useProvinceLookup();
+
+  const propertyLocationName = provinceLookup.get(order.propertyLocation?.trim()) || order.propertyLocation;
 
   const formattedPrice = order.priceTicket
     ? formatCurrency(order.priceTicket)
@@ -60,19 +65,23 @@ export default function HomestayCard({ order }: HomestayOrderProps) {
         <div className="flex flex-col sm:flex-row">
           {/* Image */}
           <div className="relative w-full sm:w-48 h-48 sm:h-auto overflow-hidden shrink-0">
-            <Image
-              src={order.images?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
-              alt={order.brand}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-            />
+            {order.images?.[0] ? (
+              <Image
+                src={order.images[0]}
+                alt={order.brand}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            ) : (
+              <NoImage className="w-full h-full" />
+            )}
             {/* Overlay gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent sm:bg-gradient-to-r" />
             
             {/* Location badge */}
             <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-[#1E3A5F] text-xs font-semibold px-2.5 py-1.5 rounded-lg">
               <MapPin size={12} className="text-[#EF4444]" />
-              {order.propertyLocation}
+              {propertyLocationName}
             </div>
           </div>
 
@@ -117,15 +126,15 @@ export default function HomestayCard({ order }: HomestayOrderProps) {
 
               {/* Details */}
               <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3">
+                <div className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1 line-clamp-1">
+                  <MapPin size={12} className="shrink-0 text-[#EF4444]" />
+                  <span>{propertyLocationName}</span>
+                </div>
                 <div className="flex items-center gap-1.5 text-sm text-[#64748B]">
                   <Calendar size={14} className="text-[#3B82F6]" />
                   <span className="font-medium">
                     {new Date(order.checkInDate).toLocaleDateString("vi-VN")}
                   </span>
-                </div>
-                <div className="flex items-center gap-1.5 text-sm text-[#64748B]">
-                  <Phone size={14} className="text-[#00C853]" />
-                  <span className="font-medium">{order.phone}</span>
                 </div>
               </div>
 
@@ -189,17 +198,21 @@ export default function HomestayCard({ order }: HomestayOrderProps) {
               </button>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white/20 bg-white shrink-0">
-                  <Image
-                    src={order.images?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
-                    alt={order.brand}
-                    width={48}
-                    height={48}
-                    className="object-cover w-full h-full"
-                  />
+                  {order.images?.[0] ? (
+                    <Image
+                      src={order.images[0]}
+                      alt={order.brand}
+                      width={48}
+                      height={48}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <NoImage className="w-full h-full rounded-xl" />
+                  )}
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg leading-tight mb-1">{order.brand}</h3>
-                  <p className="text-white/70 text-xs">Homestay • Khu vực {order.propertyLocation}</p>
+                  <h3 className="font-bold text-lg">{order.brand}</h3>
+                  <p className="text-white/70 text-xs">Homestay • Khu vực {propertyLocationName}</p>
                 </div>
               </div>
             </div>
@@ -236,9 +249,9 @@ export default function HomestayCard({ order }: HomestayOrderProps) {
                 <div className="text-xs text-amber-700 leading-relaxed">
                   <p className="font-bold mb-1">Hướng dẫn đặt phòng:</p>
                   <ul className="space-y-1 list-disc list-inside text-amber-600">
-                    <li>Gọi số điện thoại trên để liên hệ nhà đặt phòng</li>
-                    <li>Nêu rõ loại phòng khu vực <span className="font-semibold">{order.propertyLocation}</span></li>
-                    <li>Ngày nhận phòng: <span className="font-semibold">{new Date(order.checkInDate).toLocaleDateString("vi-VN")}</span></li>
+                    <li>Gọi trực tiếp số điện thoại trên để đặt phòng</li>
+                    <li>Nêu rõ loại phòng khu vực <span className="font-semibold">{propertyLocationName}</span></li>
+                    <li>Ngày dự kiến nhận phòng: <span className="font-semibold">{order.checkInDate ? new Date(order.checkInDate).toLocaleDateString('vi-VN') : "Đang cập nhật"}</span></li>
                     <li>Giá tham khảo: <span className="font-semibold text-[#FF6B35]">{formattedPrice}/đêm</span></li>
                   </ul>
                 </div>

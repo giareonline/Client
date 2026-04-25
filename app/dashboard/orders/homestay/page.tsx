@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { z as zod } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Field, Form } from "@/app/components/hook-form";
-import { PROVINCE_OPTIONS } from "@/app/utils/provinces";
+import { useProvinces } from "@/app/hooks/api/useProvinces";
 import Button from "@/app/ui/button";
 import { useAlert } from "@/app/components/AlertContext";
 import OrderSuccessModal from "../components/OrderSuccessModal";
@@ -66,6 +66,7 @@ export default function HomestayPage() {
   const userStars = profileData?.user?.stars ?? 0;
 
   const mutation = useCreateHomestayOrder();
+  const { data: provinceOptions = [] } = useProvinces();
 
   const { watch } = methods;
   const listTop = watch("listTop");
@@ -82,10 +83,6 @@ export default function HomestayPage() {
   const hasEnoughStars = userStars >= requiredStars;
 
   const onSubmit = (data: SchemaType) => {
-    if (images.length === 0) {
-      showError("Hình ảnh homestay là bắt buộc");
-      return;
-    }
 
     const formattedData = {
       ...data,
@@ -154,7 +151,7 @@ export default function HomestayPage() {
                 <Field.Select
                   name="propertyLocation"
                   label={{ text: "Khu vực", icon: "*" }}
-                  options={[...PROVINCE_OPTIONS]}
+                  options={provinceOptions}
                   searchable
                 />
 
@@ -249,7 +246,7 @@ export default function HomestayPage() {
           {/* Image upload */}
           <Card>
             <h3 className="text-sm font-semibold text-gray-700 mb-3">
-              Hình ảnh homestay <span className="text-red-500">*</span>
+              Hình ảnh homestay
             </h3>
             <ImageUploader value={images} onChange={setImages} maxFiles={4} />
           </Card>

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z as zod } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MapPin, Search, Bus, Home, Filter, X } from "lucide-react";
-import { PROVINCE_OPTIONS } from "@/app/utils/provinces";
+import { useProvinces } from "@/app/hooks/api/useProvinces";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -24,6 +24,7 @@ type SchemaType = zod.infer<typeof schema>;
 export default function FiltersForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: provinceOptions = [] } = useProvinces();
   const [isMobileModalOpen, setIsMobileModalOpen] = React.useState(false);
 
   const methods = useForm<SchemaType>({
@@ -45,8 +46,8 @@ export default function FiltersForm() {
   React.useEffect(() => {
     reset({
       serviceType: (searchParams.get("serviceType") as any) || "bus",
-      fromLocation: searchParams.get("fromLocation") || "297",
-      toLocation: searchParams.get("toLocation") || "224",
+      fromLocation: searchParams.get("fromLocation") || "",
+      toLocation: searchParams.get("toLocation") || "",
       fromDate: searchParams.get("fromDate") || new Date(),
       propertyLocation: searchParams.get("propertyLocation") || "369",
       checkInDate: searchParams.get("checkInDate") || new Date(),
@@ -159,7 +160,7 @@ export default function FiltersForm() {
                       <MapPin size={16} className="text-[#00C853]" />
                     ),
                   }}
-                  options={[...PROVINCE_OPTIONS]}
+                  options={provinceOptions}
                   searchable
                 />
                 <Field.Select
@@ -170,7 +171,7 @@ export default function FiltersForm() {
                       <MapPin size={16} className="text-[#EF4444]" />
                     ),
                   }}
-                  options={[...PROVINCE_OPTIONS]}
+                  options={provinceOptions}
                   searchable
                 />
                 <Field.DatePicker
@@ -188,7 +189,7 @@ export default function FiltersForm() {
                       <MapPin size={16} className="text-[#3B82F6]" />
                     ),
                   }}
-                  options={[...PROVINCE_OPTIONS]}
+                  options={provinceOptions}
                   searchable
                 />
                 <Field.DatePicker
