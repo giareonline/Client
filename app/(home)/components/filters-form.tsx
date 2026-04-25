@@ -29,10 +29,10 @@ export default function FiltersForm() {
     resolver: zodResolver(schema),
     defaultValues: {
       serviceType: (searchParams.get("serviceType") as any) || "bus",
-      fromLocation: searchParams.get("fromLocation") || "Hà Nội",
-      toLocation: searchParams.get("toLocation") || "Hồ Chí Minh",
+      fromLocation: searchParams.get("fromLocation") || "210",
+      toLocation: searchParams.get("toLocation") || "294",
       fromDate: searchParams.get("fromDate") || new Date(),
-      propertyLocation: searchParams.get("propertyLocation") || "",
+      propertyLocation: searchParams.get("propertyLocation") || "369",
       checkInDate: searchParams.get("checkInDate") || new Date(),
       brand: searchParams.get("brand") || "",
     },
@@ -44,10 +44,10 @@ export default function FiltersForm() {
   React.useEffect(() => {
     reset({
       serviceType: (searchParams.get("serviceType") as any) || "bus",
-      fromLocation: searchParams.get("fromLocation") || "Hà Nội",
-      toLocation: searchParams.get("toLocation") || "Hồ Chí Minh",
+      fromLocation: searchParams.get("fromLocation") || "297",
+      toLocation: searchParams.get("toLocation") || "224",
       fromDate: searchParams.get("fromDate") || new Date(),
-      propertyLocation: searchParams.get("propertyLocation") || "",
+      propertyLocation: searchParams.get("propertyLocation") || "369",
       checkInDate: searchParams.get("checkInDate") || new Date(),
       brand: searchParams.get("brand") || "",
     });

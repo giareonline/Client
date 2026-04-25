@@ -1,4 +1,4 @@
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { twMerge } from "tailwind-merge";
 import { Options } from "../types/types";
@@ -57,11 +57,17 @@ export function Select({
   const selectedOption = options.find((opt) => opt.value === value);
 
   const filteredOptions = useMemo(() => {
-    if (!searchable || !searchTerm) return options;
-    return options.filter((opt) =>
-      opt.label.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-  }, [options, searchable, searchTerm]);
+    let filtered = options;
+    if (selectedOption && (selectedOption as any).province && !searchTerm) {
+      filtered = filtered.filter(opt => (opt as any).province === (selectedOption as any).province);
+    }
+    if (searchable && searchTerm) {
+      filtered = filtered.filter((opt) =>
+        opt.label.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
+    return filtered;
+  }, [options, searchable, searchTerm, selectedOption]);
 
   return (
     <div className="flex flex-col gap-1 w-full" ref={ref}>
@@ -91,12 +97,26 @@ export function Select({
             )}
           </div>
 
-          <ChevronDown
-            className={twMerge(
-              "text-gray-500 transition-transform flex-shrink-0",
-              open && "rotate-180",
+          <div className="flex items-center gap-1">
+            {selectedOption && (
+              <button
+                type="button"
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange?.("");
+                }}
+              >
+                <X size={16} className="text-gray-400 hover:text-gray-600" />
+              </button>
             )}
-          />
+            <ChevronDown
+              className={twMerge(
+                "text-gray-500 transition-transform flex-shrink-0",
+                open && "rotate-180",
+              )}
+            />
+          </div>
         </div>
 
         {open && (
@@ -127,7 +147,10 @@ export function Select({
                 filteredOptions.map((opt) => (
                   <div
                     key={opt.value}
-                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm flex items-center gap-2"
+                    className={twMerge(
+                      "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm flex items-center gap-2",
+                      opt.value === value && "bg-[#F0F7FF] text-[#1E3A5F] font-medium"
+                    )}
                     onClick={() => {
                       onChange?.(opt.value);
                       setOpen(false);

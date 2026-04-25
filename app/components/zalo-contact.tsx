@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 export default function ZaloContact() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (isOpen) {
@@ -18,6 +20,10 @@ export default function ZaloContact() {
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
+
+  if (pathname !== "/") {
+    return null;
+  }
 
   return (
     <>
@@ -128,7 +134,7 @@ export default function ZaloContact() {
                   <div className="bg-orange-50 text-orange-700 p-4 rounded-xl text-base border border-orange-200 shadow-inner w-full">
                     <p className="font-semibold leading-relaxed">
                       Liên hệ với mục đích report báo cáo sai phạm, lừa đảo,
-                      hoặc hợp tác với các nhãn hàng.
+                      hoặc liên hệ quảng cáo.
                     </p>
                   </div>
                 </div>

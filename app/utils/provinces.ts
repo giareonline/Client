@@ -9,16 +9,19 @@ export const PROVINCE_OPTIONS = Array.from(
       .map((p) => {
         const isProvinceOnly = !p.spn || p.spn === p.pn;
         const name = isProvinceOnly ? p.pn : `${p.spn}, ${p.pn}`;
-        const value = name; // Using the full readable name as value for unique matching
+        const value = p.spid ? p.spid.toString() : p.pusn;
         return [
           value,
           {
             value,
             label: name,
-            icon: React.createElement(MapPin, { size: 14, className: "flex-shrink-0" }),
+            province: p.pn,
+            icon: React.createElement(MapPin, {
+              size: 14,
+              className: "flex-shrink-0",
+            }),
           },
         ];
-      })
-  ).values()
+      }),
+  ).values(),
 ).sort((a, b) => a.label.localeCompare(b.label));
-

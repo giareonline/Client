@@ -11,6 +11,7 @@ import api from "@/app/lib/axios";
 export default function Header() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export default function Header() {
           console.error("Failed to parse user from local storage", e);
         }
       }
+      setIsLoading(false);
     };
 
     // Fetch fresh user data from API to keep stars/status in sync
@@ -95,7 +97,9 @@ export default function Header() {
             Hướng dẫn
           </Link>
 
-          {user ? (
+          {isLoading ? (
+            <div className="ml-1 w-24 h-9 bg-white/10 animate-pulse rounded-xl" />
+          ) : user ? (
             <AccountDropdown user={user} setUser={setUser} />
           ) : (
             <button
