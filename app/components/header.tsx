@@ -91,10 +91,11 @@ export default function Header() {
         <nav className="flex items-center gap-2" aria-label="Điều hướng chính">
           <Link
             href="/huong-dan"
-            className="hidden sm:flex items-center gap-1.5 text-blue-100/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
+            className="flex items-center gap-1.5 text-blue-100/80 hover:text-white text-sm font-medium transition-colors px-2 sm:px-3 py-1.5 rounded-lg hover:bg-white/10"
+            title="Hướng dẫn"
           >
-            <HelpCircle size={15} />
-            Hướng dẫn
+            <HelpCircle className="w-5 h-5 sm:w-[15px] sm:h-[15px]" />
+            <span className="hidden sm:inline">Hướng dẫn</span>
           </Link>
 
           {isLoading ? (

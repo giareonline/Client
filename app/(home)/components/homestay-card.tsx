@@ -12,6 +12,7 @@ interface HomestayOrderProps {
   order: {
     _id: string;
     propertyLocation: string;
+    address?: string;
     checkInDate: string;
     brand: string;
     phone: string;
@@ -115,8 +116,11 @@ export default function HomestayCard({ order }: HomestayOrderProps) {
 
                 {/* Price */}
                 <div className="text-right shrink-0">
+                  <p className="text-[10px] text-[#94A3B8] font-semibold uppercase tracking-wider mb-0.5">
+                    Giá tham khảo
+                  </p>
                   <p className="text-2xl font-extrabold text-[#FF6B35] tracking-tight">
-                    {formattedPrice}
+                    ~{formattedPrice}
                   </p>
                   <p className="text-[10px] text-[#94A3B8] font-medium">
                     /đêm
@@ -128,7 +132,7 @@ export default function HomestayCard({ order }: HomestayOrderProps) {
               <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3">
                 <div className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1 line-clamp-1">
                   <MapPin size={12} className="shrink-0 text-[#EF4444]" />
-                  <span>{propertyLocationName}</span>
+                  <span>{order.address ? `${order.address}, ${propertyLocationName}` : propertyLocationName}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-sm text-[#64748B]">
                   <Calendar size={14} className="text-[#3B82F6]" />
@@ -252,7 +256,7 @@ export default function HomestayCard({ order }: HomestayOrderProps) {
                     <li>Gọi trực tiếp số điện thoại trên để đặt phòng</li>
                     <li>Nêu rõ loại phòng khu vực <span className="font-semibold">{propertyLocationName}</span></li>
                     <li>Ngày dự kiến nhận phòng: <span className="font-semibold">{order.checkInDate ? new Date(order.checkInDate).toLocaleDateString('vi-VN') : "Đang cập nhật"}</span></li>
-                    <li>Giá tham khảo: <span className="font-semibold text-[#FF6B35]">{formattedPrice}/đêm</span></li>
+                    <li>Giá tham khảo: <span className="font-semibold text-[#FF6B35]">~{formattedPrice}/đêm</span></li>
                   </ul>
                 </div>
               </div>

@@ -24,6 +24,7 @@ import { useCreateHomestayOrder } from "@/app/hooks/api/useOrders";
 
 const schema = zod.object({
   propertyLocation: zod.string().min(1, "Khu vực là bắt buộc"),
+  address: zod.string().min(1, "Địa chỉ cụ thể là bắt buộc"),
   checkInDate: zod
     .any()
     .refine((val) => val !== null && val !== undefined && val !== "", {
@@ -44,6 +45,7 @@ export default function HomestayPage() {
     resolver: zodResolver(schema),
     defaultValues: {
       propertyLocation: "",
+      address: "",
       checkInDate: new Date() as any,
       brand: "",
       phone: "",
@@ -153,6 +155,11 @@ export default function HomestayPage() {
                   label={{ text: "Khu vực", icon: "*" }}
                   options={provinceOptions}
                   searchable
+                />
+
+                <Field.Text
+                  name="address"
+                  label={{ text: "Địa chỉ cụ thể", icon: "*" }}
                 />
 
                 <Field.Text

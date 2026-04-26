@@ -220,9 +220,9 @@ export default function HuongDanPage() {
                   <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
                     <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
                       <Star size={18} className="text-yellow-500" />
-                      Tích điểm G-Stars
+                      Sử dụng G-Stars
                     </h3>
-                    <p className="text-sm">Khi hoàn thành các chuyến đi hoặc đặt phòng, bạn sẽ được tích lũy điểm G-Stars. Sử dụng điểm này để đổi voucher hoặc nhận ưu đãi đặc biệt cho các lần đặt sau.</p>
+                    <p className="text-sm">Dùng sao để trở thành nhà cung cấp dịch vụ trên nền tảng. Bạn có thể sử dụng số sao này để đăng bài cung cấp dịch vụ (homestay, chuyến xe) nhằm tiếp cận và hiển thị cho người dùng thấy.</p>
                   </div>
 
                   <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">

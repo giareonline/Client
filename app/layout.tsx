@@ -31,6 +31,15 @@ export const metadata: Metadata = {
   description:
     "GiaReViet - Hệ thống đặt vé xe khách và homestay giá rẻ nhất Việt Nam. So sánh hàng trăm nhà xe, homestay uy tín. Thanh toán an toàn, hỗ trợ 24/7.",
   keywords: [
+    "giare",
+    "giaviet",
+    "giave",
+    "giaveonline",
+    "giareonline",
+    "giá rẻ",
+    "giá vé",
+    "gia re",
+    "gia ve",
     "đặt vé xe",
     "vé xe khách",
     "homestay giá rẻ",
@@ -82,6 +91,11 @@ export const metadata: Metadata = {
     description:
       "Tìm kiếm và đặt vé xe khách, homestay với giá tốt nhất Việt Nam.",
     images: ["/logo.png"],
+  },
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
   alternates: {
     canonical: SITE_URL,

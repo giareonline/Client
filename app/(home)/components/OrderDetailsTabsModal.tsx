@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { 
   X, Check, ChevronLeft, ChevronRight, 
@@ -47,16 +47,21 @@ export default function OrderDetailsTabsModal({ isOpen, onClose, order }: OrderD
   const [activeTab, setActiveTab] = useState<"policy" | "images" | "amenities">("policy");
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
+  const actualAmenities = useMemo(() => {
+    return order.amenities && order.amenities.length > 0
+      ? order.amenities 
+      : order.type === "bus" 
+        ? ["Nước uống", "Búa phá kính", "Tivi LED", "Sạc điện thoại", "Chăn đắp", "Wifi", "Điều hòa", "Khăn lạnh"]
+        : ["Wifi miễn phí", "Điều hoà", "Tivi", "Máy nước nóng", "Đồ vệ sinh cá nhân", "Bãi đỗ xe", "Ăn sáng"];
+  }, [order.amenities, order.type]);
+
+  const { fullWidthItems, gridItems } = useMemo(() => {
+    const full = actualAmenities.filter(a => getAmenityConfig(a).desc);
+    const grid = actualAmenities.filter(a => !getAmenityConfig(a).desc);
+    return { fullWidthItems: full, gridItems: grid };
+  }, [actualAmenities]);
+
   if (!isOpen) return null;
-
-  const actualAmenities = order.amenities && order.amenities.length > 0
-    ? order.amenities 
-    : order.type === "bus" 
-      ? ["Nước uống", "Búa phá kính", "Tivi LED", "Sạc điện thoại", "Chăn đắp", "Wifi", "Điều hòa", "Khăn lạnh"]
-      : ["Wifi miễn phí", "Điều hoà", "Tivi", "Máy nước nóng", "Đồ vệ sinh cá nhân", "Bãi đỗ xe", "Ăn sáng"];
-
-  const fullWidthItems = actualAmenities.filter(a => getAmenityConfig(a).desc);
-  const gridItems = actualAmenities.filter(a => !getAmenityConfig(a).desc);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" onClick={onClose}>
@@ -165,6 +170,9 @@ export default function OrderDetailsTabsModal({ isOpen, onClose, order }: OrderD
                       src={order.images[currentImgIndex]} 
                       alt={`Gallery main ${currentImgIndex + 1}`} 
                       fill 
+                      priority
+                      sizes="(max-width: 768px) 100vw, 800px"
+                      unoptimized={true}
                       className="object-contain" // Keep aspect ratio but fit inside the box
                     />
                     {order.images.length > 1 && (
@@ -202,7 +210,7 @@ export default function OrderDetailsTabsModal({ isOpen, onClose, order }: OrderD
                             : 'ring-1 ring-gray-200 opacity-60 hover:opacity-100'
                           }`}
                         >
-                          <Image src={img} alt={`Thumb ${idx + 1}`} fill className="object-cover" />
+                          <Image src={img} alt={`Thumb ${idx + 1}`} fill sizes="88px" unoptimized={true} loading="lazy" className="object-cover" />
                         </button>
                       ))}
                     </div>
